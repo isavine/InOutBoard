@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block body %}
+<div class='container'>
+{% if add_mode %}
+	<form action="{{ url_for('add_user') }}" method=post class=add-user>
+		<fieldset class="form-group">
+			<label for"fn">First Name:</label>
+			<input id="fn" class="form-control" type=text size=30 name=first-name required>
+		</fieldset>
+
+		<fieldset class="form-group">
+			<label for"ln">Last Name:</label>
+			<input id="ln" class="form-control" type=text size=30 name=last-name required>
+		</fieldset>
+
+		<fieldset class="form-group">
+			<label for"uid_form">UID:</label>
+			<input id="uid_form" class="form-control" type=text size=30 name=uid required>
+		</fieldset>
+
+		<fieldset class="form-group">
+			<label for"url_form">URL:</label>
+			<input id="url_form" class="form-control" type=url size=30 name=url required>
+		</fieldset>
+
+		<div class="radio">
+		    <label>
+		      <input type="radio" name="selected_role" value="staff" checked>
+		      Staff
+		    </label>
+		</div>
+	  	<div class="radio">
+		    <label>
+		       <input type="radio" name="selected_role" value="admin">
+		     	Admin
+		    </label>
+	  	</div>
+
+	    <button type="submit" class="btn btn-primary">Add User</button>
+	      
+	</form>
+
+
+{% else %}
+<form action="{{ url_for('edit_user', uid=user.uid) }}" method=post class=add-user>
+		<fieldset class="form-group">
+			<label for"fn">First Name:</label>
+			<input id="fn" class="form-control" type=text size=30 name=first-name value="{{user.first_name}}" required>
+		</fieldset>
+
+		<fieldset class="form-group">
+			<label for"ln">Last Name:</label>
+			<input id="ln" class="form-control" type=text size=30 name=last-name value="{{user.last_name}}" required>
+		</fieldset>
+
+		<fieldset class="form-group">
+			<label for"uid_form">UID:</label>
+			<input id="uid_form" class="form-control" type=text size=30 name=uid value="{{user.uid}}" readonly>
+		</fieldset>
+
+		<fieldset class="form-group">
+			<label for"url_form">URL:</label>
+			<input id="url_form" class="form-control" type=url size=30 name=url value="{{user.url}}" required>
+		</fieldset>
+
+		{% if not curr_uid == user.uid %}
+	        {% if staff %}
+	        	<div class="radio">
+				    <label>
+				      <input type="radio" name="selected_role" value="staff" checked>
+				      Staff
+				    </label>
+				</div>
+			  	<div class="radio">
+				    <label>
+				       <input type="radio" name="selected_role" value="admin">
+				     	Admin
+				    </label>
+			  	</div>
+		    {% else %}
+				<div class="radio">
+				    <label>
+				      <input type="radio" name="selected_role" value="staff">
+				      Staff
+				    </label>
+				</div>
+			  	<div class="radio">
+				    <label>
+				       <input type="radio" name="selected_role" value="admin" checked>
+				     	Admin
+				    </label>
+			  	</div>
+		    {% endif %}
+	    {% else %}
+	    	<div class="radio">
+			    <label>
+			      <input type="radio" name="selected_role" value="staff" disabled>
+			      Staff
+			    </label>
+			</div>
+		  	<div class="radio">
+			    <label>
+			       <input type="radio" name="selected_role" value="admin" checked >
+			     	Admin
+			    </label>
+		  	</div>
+	    {% endif %}
+
+        <button type="submit" class="btn btn-primary">Confirm Changes</button>
+</form>
+
+
+{% endif %}
+</div>
+{% endblock %}
+
+
