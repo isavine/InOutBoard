@@ -1,101 +1,100 @@
 <!doctype html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>Math Staff In/Out Board</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<title>Math Staff In/Out Board</title>
 
-  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 
-  <script type="text/javascript">
-  var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-  </script>
+	<script type="text/javascript">
+		var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+	</script>
 
-  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 
-  <style>
-  body { padding-top: 70px; }
-  #save_button { vertical-align: center;}
-  #asdf { display: inline-block;}
-  .navbar-primary { background-color: #F2F2F2; }
-  .navbar-primary .navbar-toggle .icon-bar {  background-color: black;}
-  @media only screen and (max-width: 500px) {
-    #header_title {
-      display: none;
-    }
-  }
-  .table {font-size: 120%;}
-  .msg_input {font-size: 100%}
-  </style>
+	<style>
+		body { padding-top: 70px; }
+		#save_button { vertical-align: center;}
+		#asdf { display: inline-block;}
+		.navbar-primary { background-color: #F2F2F2; }
+		.navbar-primary .navbar-toggle .icon-bar {  background-color: black; }
+		@media only screen and (max-width: 500px) {
+			#header_title { display: none; }
+		}
+		.table {font-size: 120%;}
+		.msg_input {font-size: 100%}
+	</style>
 </head>
 
 <body>
-  <nav role="navigation" class="navbar navbar-primary navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <div class="navbar-header pull-left">
-          <a id="header_title" class="navbar-brand" href="{{ url_for('login') }}">Math Staff In/Out Board</a>
-          <a class="navbar-brand"><b><span id="date"></span></b></a>
-        </div>
 
-        <!-- 'Sticky' (non-collapsing) right-side menu item(s) -->
-        <div class="navbar-header pull-right">
-          <ul class="nav pull-left">
-            <!-- This works well for static text, like a username -->
-            <button id="save_refresh_btn" type="button" class="btn btn-primary navbar-btn" onclick="location.href='{{ url_for('render_board') }}'" >Refresh</button>
-            <!-- Add any additional bootstrap header items.  This is a drop-down from an icon -->
-          </ul>
+<nav role="navigation" class="navbar navbar-primary navbar-fixed-top">
+	<div class="container">
+		<div class="navbar-header">
+			<div class="navbar-header pull-left">
+				<a id="header_title" class="navbar-brand" href="{{ url_for('render_board') }}">Math Staff In/Out Board</a>
+				<a class="navbar-brand"><b><span id="date"></span></b></a>
+			</div>
 
-          <!-- Required bootstrap placeholder for the collapsed menu -->
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-        </div>
-      </div>
-      <!-- Additional navbar items -->
-      <div id="navbar"class="collapse navbar-collapse navbar-right">
-        <!--                      pull-right keeps the drop-down in line -->
-        <ul class="nav navbar-nav navbar-right">
-          {% if not session.logged_in %}
-          <li><a href="{{ url_for('login') }}">Log In</a></li>
-          {% else %}
-          {% if admin %}
-          <li><a href="{{ url_for('add_user_page') }}">Add User</a></li>
-          {% endif%}
-          <li><a href="{{ url_for('logout') }}">Log Out</a></li>
-          {% endif %}
-        </ul>
-      </div>
-    </div>
-  </nav>
+			<!-- 'Sticky' (non-collapsing) menu items -->
+			<div class="navbar-header pull-right">
+				<ul class="nav pull-left">
+					<button id="save_refresh_btn" type="button" class="btn btn-primary navbar-btn" onclick="location.href='{{ url_for('render_board') }}'" >Refresh</button>
+				</ul>
+				<!-- Collapsed Menu Button -->
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+			</div>
+		</div>
 
-  {% for message in get_flashed_messages() %}
-  <div class="alert alert-success">{{ message }}</div>
-  {% endfor %}
+		<!-- Additional navbar items -->
+		<div id="navbar"class="collapse navbar-collapse navbar-right">
+			<ul class="nav navbar-nav navbar-right">
+			{% if not session.logged_in %}
+				<li><a href="{{ url_for('login') }}">Log In</a></li>
+			{% else %}
+				{% if admin %}
+					<li><a href="{{ url_for('add_user_page') }}">Add User</a></li>
+				{% endif%}
+					<li><a href="{{ url_for('logout') }}">Log Out</a></li>
+			{% endif %}
+			</ul>
+		</div>
+	</div>
+</nav>
+
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+	  {% for category, message in messages %}
+		<div class="alert alert-{{ category }} alert-dismissible" role="alert">
+		  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		  </button>
+		  {{ message }}
+		</div>
+	  {% endfor %}
+  {% endwith %}
 
   {% block body %}{% endblock %}
+
   <script type="text/javascript">
-  var today = new Date();
-  var dd = today.getDate();
-  var mm = today.getMonth()+1; //January is 0!
-  var yyyy = today.getFullYear();
-  if(dd<10) {
-    dd='0'+dd
-  }
-  if(mm<10) {
-    mm='0'+mm
-  }
-  today = mm+'/'+dd+'/'+yyyy;
-  document.getElementById('date').innerHTML=today;
+	var today = new Date();
+	var dd = today.getDate();
+	var mm = today.getMonth()+1; //January is 0!
+	var yyyy = today.getFullYear();
+
+	if (dd < 10) {
+		dd = '0' + dd
+	}
+	if ( mm < 10 ) {
+		mm = '0' + mm
+	}
+
+	today = mm + '/' + dd + '/' + yyyy;
+	document.getElementById('date').innerHTML = today;
   </script>
 
-  <input type="hidden" id="refreshed" value="no">
-  <script type="text/javascript">
-  onload=function(){
-    var e=document.getElementById("refreshed");
-    if(e.value=="no")e.value="yes";
-    else{e.value="no";location.reload();}
-  }
-  </script>
 </body>

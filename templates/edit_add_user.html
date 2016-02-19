@@ -42,7 +42,7 @@
 
 
 {% else %}
-<form action="{{ url_for('edit_user', uid=user.uid) }}" method=post class=add-user>
+<form action="{{ url_for('edit_user', uid=user.id) }}" method=post class=add-user>
 		<fieldset class="form-group">
 			<label for"fn">First Name:</label>
 			<input id="fn" class="form-control" type=text size=30 name=first-name value="{{user.first_name}}" required>
@@ -55,7 +55,7 @@
 
 		<fieldset class="form-group">
 			<label for"uid_form">UID:</label>
-			<input id="uid_form" class="form-control" type=text size=30 name=uid value="{{user.uid}}" readonly>
+			<input id="uid_form" class="form-control" type=text size=30 name=uid value="{{user.id}}" readonly>
 		</fieldset>
 
 		<fieldset class="form-group">
@@ -63,7 +63,7 @@
 			<input id="url_form" class="form-control" type=url size=30 name=url value="{{user.url}}" required>
 		</fieldset>
 
-		{% if not curr_uid == user.uid %}
+		{% if not curr_uid == user.id %}
 	        {% if staff %}
 	        	<div class="radio">
 				    <label>

@@ -1,10 +1,17 @@
 import json
-from db_config import User, Role, UserRoles, staff_role, admin_role, db, app
+from setup import app, db
+from db_config import User, Role, UserRoles, staff_role, admin_role
 from flask import Flask, request, jsonify, session, g, redirect, url_for, abort, \
      render_template, flash, json
 from ldap import initialize, SCOPE_SUBTREE
 from urllib import urlencode, urlopen
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask.ext.login import LoginManager, login_user, UserMixin, login_required, logout_user, \
+      fresh_login_required
+from datetime import timedelta
+
+
+
 
 # app = Flask(__name__)
 # db = SQLAlchemy(app)
@@ -20,8 +27,25 @@ from flask.ext.sqlalchemy import SQLAlchemy
 #     SQLALCHEMY_DATABASE_URI = 'sqlite:////home/tommy/work/InOutBoard/.inoutboard.db',
 #     SQLALCHEMY_TRACK_MODIFICATIONS = True
 # ))
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(user_id)
+
 
 app.config.from_envvar('INOUTBOARD_SETTINGS', silent=False)
+
+@app.before_request
+def func():
+    session.modified = True
+
+
+@app.before_request
+def make_session_permanent():
+    session.permanent = True
+    app.permanent_session_lifetime = timedelta(minutes=120)
 
 
 # class User(db.Model):
@@ -73,15 +97,20 @@ app.config.from_envvar('INOUTBOARD_SETTINGS', silent=False)
 # admin_role = Role(name='admin')
 # # user_schema = UserSchema()
 # # users_schema = UserSchema(many=True)
-
+@login_manager.unauthorized_handler
+def unauthorized_callback():
+    flash('Cannot validate authentication request.', 'danger')
+    return render_template("base.html")
 
 
 @app.route('/logout')
+@login_required
 def logout():
     session['logged_in'] = False
     session['admin'] = False
     session['staff'] = False
-    flash('You were logged out')
+    flash('You were logged out', 'success')
+    logout_user()
     # url = 'https://auth.berkeley.edu/cas/logout'
     # return redirect(url,307)
     return render_template("base.html")
@@ -118,22 +147,25 @@ def validate():
             #print result
             name = result[0][1]['displayName'][0].title()
             session['name'] = name
-            flash('You were logged in as %s' % name)
+            flash('You were logged in as %s' % name, 'success')
             #print session
-
-            if not (User.query.get(session['UID'])):
+            user = User.query.get(session['UID'])
+            if not (user):
                 session['admin'] = False
                 session['staff'] = False
                 return redirect(url_for('render_board'))
             session['logout'] = False
             #return redirect(url_for("render_role_select")) #production
             # uncomment below when going commercial
+            login_user(user)
+
             return redirect(url_for("determine_user_type"))
         return render_template("board.html", users=db.session.query(User))
-    flash('Cannot validate authentication request')
+    flash('Cannot validate authentication request', 'danger')
     return redirect(url_for('login'))
 
 @app.route('/dut')
+@login_required
 def determine_user_type():
     # Change if want multiple roles per user.
     if not (session['logged_in']):
@@ -152,9 +184,10 @@ def determine_user_type():
 
 
 @app.route('/board')
+@login_required
 def render_board():
     users = db.session.query(User)
-    uids = [user.uid for user in users]
+    uids = [user.id for user in users]
     return render_template("board.html", users=users, uids = uids,
         admin = session["admin"], staff= session["staff"])
 
@@ -179,6 +212,7 @@ def render_board():
 #     return redirect(url_for('render_board'))
 
 @app.route('/inOutToggle/<uid>')
+@login_required
 def inOutToggle(uid):
 	print("going in here")
 	user = User.query.get(uid)
@@ -191,6 +225,7 @@ def inOutToggle(uid):
 	return redirect(url_for('render_board'))
 
 @app.route('/message_submit')
+@login_required
 def message_submit():
     new_msgs = request.args.get('new_msgs')
     parsed_msgs = json.loads(new_msgs)
@@ -204,12 +239,14 @@ def message_submit():
     return jsonify()
 
 @app.route('/check_change')
+@login_required
 def check_change():
     srvr_users = db.session.query(User).all()
     result = users_schema.dump(srvr_users)
     return jsonify({'users': result.data })
 
 @app.route('/edit_user_page/<uid>')
+@login_required
 def edit_user_page(uid):
     user = User.query.get(uid)
     role = user.roles[0].name
@@ -220,9 +257,10 @@ def edit_user_page(uid):
         edit_mode=True, add_mode=False, user=user, staff=staff)
 
 @app.route('/edit_user/<uid>', methods=["POST"])
+@login_required
 def edit_user(uid):
     user = User.query.get(uid)
-    user.uid = request.form['uid']
+    user.id = request.form['uid']
     user.first_name = request.form['first-name']
     user.last_name = request.form['last-name']
     user.url = request.form['url']
@@ -240,14 +278,22 @@ def edit_user(uid):
 
 
 @app.route('/add_user_page')
+@fresh_login_required
 def add_user_page():
     return render_template("edit_add_user.html", edit_mode=False, add_mode=True)
 
+@login_manager.needs_refresh_handler
+def refresh():
+    flash('NEED A FRESH LOGIN', 'danger')
+    return render_template("base.html")
+
+
 @app.route('/add_user', methods=['POST'])
+@login_required
 def add_user():
     fn = request.form['first-name']
     ln = request.form['last-name']
-    new_user = User(uid=request.form['uid'],name=fn + " " + ln,first_name=fn,
+    new_user = User(id=request.form['uid'],name=fn + " " + ln,first_name=fn,
         last_name=ln,url=request.form['url'], in_out=False)
     if (request.form["selected_role"] == "staff"):
         print("added new member to staff")
@@ -268,16 +314,16 @@ if __name__ == '__main__':
     })
     db.create_all()
     #app.run()
-    run_simple('localhost', 5004, application, use_reloader=True)
+    # run_simple('localhost', 5004, application, use_reloader=True)
+    run_simple('localhost', 5000, application, use_reloader=True)
 
 # If no database:
-    # export INOUTBOARD_SETTINGS=prod_settings.py
+    # export INOUTBOARD_SETTINGS=instance/test_settings.py
+    # python init_setup.py
     # python setup.py
     # python app.py
 
-# If change database:
-    # rm .inoutboard.db
+# If existing database:
     # export INOUTBOARD_SETTINGS=prod_settings.py
-    # make changes to database
     # python setup.py
     # python app.py

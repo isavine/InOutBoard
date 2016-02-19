@@ -1,15 +1,16 @@
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask.ext.login import UserMixin
+from setup import app, db
 
-app = Flask(__name__)
+# app = Flask(__name__)
+# db = SQLAlchemy(app)
+# app.config.from_envvar('INOUTBOARD_SETTINGS', silent=False)
 
-db = SQLAlchemy(app)
-app.config.from_envvar('INOUTBOARD_SETTINGS', silent=False)
-
-class User(db.Model):
+class User(db.Model, UserMixin):
     __tablename__ = 'user'
 
-    uid = db.Column(db.String, primary_key=True, unique=True)
+    id = db.Column(db.String, primary_key=True, unique=True)
     name = db.Column(db.String, unique=False)
     url = db.Column(db.String, nullable=False, unique=False)
     #email = db.Column(db.String, nullable=True, unique=True)
@@ -36,7 +37,7 @@ class Role(db.Model):
 class UserRoles(db.Model):
     __tablename__ = 'user_roles'
     id = db.Column(db.Integer(), primary_key=True)
-    user_id = db.Column(db.Integer(), db.ForeignKey('user.uid', ondelete='CASCADE'))
+    user_id = db.Column(db.Integer(), db.ForeignKey('user.id', ondelete='CASCADE'))
     role_id = db.Column(db.Integer(), db.ForeignKey('role.id', ondelete='CASCADE'))
 
 staff_role = Role(name='staff')
