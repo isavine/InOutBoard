@@ -1,6 +1,6 @@
 import json
-from setup import app, db
-from db_config import User, Role, UserRoles, staff_role, admin_role
+# from setup import app, db
+from db_config import User, Role, UserRoles, staff_role, admin_role, app, db
 from flask import Flask, request, jsonify, session, g, redirect, url_for, abort, \
      render_template, flash, json
 from ldap import initialize, SCOPE_SUBTREE
@@ -138,7 +138,7 @@ def validate():
 
         ldap_obj = initialize(app.config['LDAP_SERVER'])
         if lines[0].strip() == 'yes':
-            session['logged_in'] = True
+            
             uid = lines[1].strip()
             session['UID'] = uid
             ldap_obj.simple_bind_s()
@@ -147,18 +147,21 @@ def validate():
             #print result
             name = result[0][1]['displayName'][0].title()
             session['name'] = name
-            flash('You were logged in as %s' % name, 'success')
+            #session['logout'] = False
             #print session
             user = User.query.get(session['UID'])
             if not (user):
                 session['admin'] = False
                 session['staff'] = False
-                return redirect(url_for('render_board'))
-            session['logout'] = False
+                session['logged_in'] = False
+                flash('You are not allowed access to this page.', 'danger')
+                return render_template("base.html")
+            flash('You were logged in as %s' % name, 'success')
+            login_user(user)
+            session['logged_in'] = True
             #return redirect(url_for("render_role_select")) #production
             # uncomment below when going commercial
-            login_user(user)
-
+            
             return redirect(url_for("determine_user_type"))
         return render_template("board.html", users=db.session.query(User))
     flash('Cannot validate authentication request', 'danger')
@@ -171,14 +174,17 @@ def determine_user_type():
     if not (session['logged_in']):
         session["admin"] = False
         session["staff"] = False
+        session["role_switch"] = False
         return redirect(url_for('login'))
     user_type = User.query.get(session['UID']).roles[0].name
     if (user_type == 'admin'):
         session["admin"] = True
         session["staff"] = False
+        session["role_switch"] = True
     elif (user_type == 'staff'):
         session["admin"] = False
         session["staff"] = True
+        session["role_switch"] = False
     return redirect(url_for('render_board'))
 
 
@@ -189,27 +195,24 @@ def render_board():
     users = db.session.query(User)
     uids = [user.id for user in users]
     return render_template("board.html", users=users, uids = uids,
-        admin = session["admin"], staff= session["staff"])
+        admin = session["admin"], staff= session["staff"], role_switch= session["role_switch"])
 
 
-# user as an admin role switcher!!!
-# @app.route('/role_select') #production
-# def render_role_select():
-#     return render_template("role_select.html")
+# user as an admin role switcher
+@app.route('/role_select') #production
+def render_role_select():
+    return render_template("role_select.html")
 
-# @app.route('/role_select', methods=['POST']) #production
-# def role_select():
-#     selected = request.form["selected"]
-#     if (selected == 'Tommy'):
-#         session["admin"] = True
-#         session["staff"] = False
-#     elif (selected == 'Igor'):
-#         session["admin"] = False
-#         session["staff"] = True
-#     else:
-#         session["admin"] = False
-#         session["staff"] = False
-#     return redirect(url_for('render_board'))
+@app.route('/role_select', methods=['POST']) #production
+def role_select():
+    selected = request.form["selected"]
+    if (selected == 'Admin'):
+        session["admin"] = True
+        session["staff"] = False
+    elif (selected == 'Staff'):
+        session["admin"] = False
+        session["staff"] = True
+    return redirect(url_for('render_board'))
 
 @app.route('/inOutToggle/<uid>')
 @login_required

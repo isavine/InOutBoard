@@ -56,7 +56,10 @@
 			{% if not session.logged_in %}
 				<li><a href="{{ url_for('login') }}">Log In</a></li>
 			{% else %}
-				{% if admin %}
+				{% if role_switch %}
+					<li><a href="{{ url_for('render_role_select') }}">Role Select</a></li>
+				{% endif%}
+				{% if admin %}					
 					<li><a href="{{ url_for('add_user_page') }}">Add User</a></li>
 				{% endif%}
 					<li><a href="{{ url_for('logout') }}">Log Out</a></li>

@@ -1,11 +1,15 @@
+import sys
+import os
+sys.path.append(os.path.abspath("../InOutBoard/instance"))
+from init_setup import *
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import UserMixin
-from setup import app, db
+#from setup import app, db
 
-# app = Flask(__name__)
-# db = SQLAlchemy(app)
-# app.config.from_envvar('INOUTBOARD_SETTINGS', silent=False)
+app = Flask(__name__)
+db = SQLAlchemy(app)
+app.config.from_envvar('INOUTBOARD_SETTINGS', silent=False)
 
 class User(db.Model, UserMixin):
     __tablename__ = 'user'
@@ -44,3 +48,5 @@ staff_role = Role(name='staff')
 admin_role = Role(name='admin')
 
 db.create_all()
+init_admins(User, admin_role, db)
+
