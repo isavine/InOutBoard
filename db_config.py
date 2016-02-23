@@ -48,7 +48,7 @@ class UserRoles(db.Model):
 def init_admins(admin_users, admin_role):
     for user in admin_users:
         id = user['id']
-        if User.query.get(id):
+        if not User.query.get(id):
 	        new_user = User(user)
 	        new_user.roles.append(admin_role)
 	        db.session.add(new_user)
