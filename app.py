@@ -98,7 +98,7 @@ def make_session_permanent():
 # # users_schema = UserSchema(many=True)
 @login_manager.unauthorized_handler
 def unauthorized_callback():
-    flash('You are logged out. Please login', 'danger')
+    flash('You are logged out. Please login.', 'danger')
     return render_template('base.html', title=app.config['BASE_HTML_TITLE'])
 
 
@@ -108,7 +108,7 @@ def logout():
     session['logged_in'] = False
     session['admin'] = False
     session['staff'] = False
-    flash('You were logged out', 'success')
+    flash('You were logged out.', 'success')
     logout_user()
     # url = 'https://auth.berkeley.edu/cas/logout'
     # return redirect(url,307)
@@ -153,7 +153,7 @@ def validate():
                 session['admin'] = False
                 session['staff'] = False
                 session['logged_in'] = False
-                flash('You are not allowed access to this page.', 'danger')
+                flash('You are not allowed to see this page.', 'danger')
                 return render_template('base.html', title=app.config['BASE_HTML_TITLE'])
             flash('You were logged in as %s' % name, 'success')
             login_user(user)
@@ -164,7 +164,7 @@ def validate():
             return redirect(url_for('determine_user_type'))
         return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
             date=date.today().strftime('%a %m/%d/%Y'), users=db.session.query(User))
-    flash('Cannot validate authentication request', 'danger')
+    flash('You are not properly logged in.', 'danger')
     return redirect(url_for('login'))
 
 
