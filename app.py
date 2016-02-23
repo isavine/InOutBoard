@@ -8,7 +8,7 @@ from urllib import urlencode, urlopen
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager, login_user, UserMixin, login_required, logout_user, \
       fresh_login_required
-from datetime import timedelta
+from datetime import date
 
 
 
@@ -45,8 +45,7 @@ def func():
 @app.before_request
 def make_session_permanent():
     session.permanent = True
-    app.permanent_session_lifetime = timedelta(minutes=120)
-
+    return
 
 # class User(db.Model):
 #     __tablename__ = 'user'
@@ -99,7 +98,7 @@ def make_session_permanent():
 # # users_schema = UserSchema(many=True)
 @login_manager.unauthorized_handler
 def unauthorized_callback():
-    flash('Cannot validate authentication request.', 'danger')
+    flash('You are logged out. Please login', 'danger')
     return render_template('base.html', title=app.config['BASE_HTML_TITLE'])
 
 
@@ -164,9 +163,10 @@ def validate():
 
             return redirect(url_for('determine_user_type'))
         return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
-            users=db.session.query(User))
+            date=date.today().strftime('%a %m/%d/%Y'), users=db.session.query(User))
     flash('Cannot validate authentication request', 'danger')
     return redirect(url_for('login'))
+
 
 @app.route('/dut')
 @login_required
@@ -189,14 +189,14 @@ def determine_user_type():
     return redirect(url_for('render_board'))
 
 
-
 @app.route('/board')
 @login_required
 def render_board():
     users = db.session.query(User)
     uids = [user.id for user in users]
     return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
-        users=users, uids = uids, admin = session['admin'], staff= session['staff'],
+        date=date.today().strftime('%a %m/%d/%Y'), users=users, uids = uids,
+        admin = session['admin'], staff= session['staff'],
         role_switch= session['role_switch'])
 
 
@@ -320,17 +320,4 @@ if __name__ == '__main__':
         app.config['APPLICATION_ROOT']: app,
     })
     db.create_all()
-    #app.run()
     run_simple('localhost', app.config['SERVER_PORT'], application, use_reloader=True)
-    # run_simple('localhost', 5000, application, use_reloader=True)
-
-# If no database:
-    # export INOUTBOARD_SETTINGS=instance/test_settings.py
-    # python init_setup.py
-    # python setup.py
-    # python app.py
-
-# If existing database:
-    # export INOUTBOARD_SETTINGS=prod_settings.py
-    # python setup.py
-    # python app.py

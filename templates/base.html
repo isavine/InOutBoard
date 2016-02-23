@@ -54,7 +54,7 @@
 		<div id="navbar"class="collapse navbar-collapse navbar-right">
 			<ul class="nav navbar-nav navbar-right">
 			{% if not session.logged_in %}
-				<li><a href="{{ url_for('login') }}">Log In</a></li>
+				<li><a href="{{ url_for('login') }}">CalNet Login</a></li>
 			{% else %}
 				{% if role_switch %}
 					<li><a href="{{ url_for('render_role_select') }}">Role Select</a></li>
