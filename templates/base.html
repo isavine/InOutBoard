@@ -70,6 +70,7 @@
 </nav>
 
 
+
   {% with messages = get_flashed_messages(with_categories=true) %}
 	  {% for category, message in messages %}
 		<div class="alert alert-{{ category }} alert-dismissible" role="alert">
@@ -79,7 +80,10 @@
 		  {{ message }}
 		</div>
 	  {% endfor %}
+	  
   {% endwith %}
+
+	
 
   {% block body %}{% endblock %}
 

@@ -1,7 +1,6 @@
 # If no database:
     # export INOUTBOARD_SETTINGS=instance/test_settings.py
-    # python init_setup.py
-    # python setup.py
+    # python db_config.py
     # python app.py
 
 # If existing database:

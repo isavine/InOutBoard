@@ -195,7 +195,8 @@ def render_board():
     users = db.session.query(User)
     uids = [user.id for user in users]
     return render_template("board.html", users=users, uids = uids,
-        admin = session["admin"], staff= session["staff"], role_switch= session["role_switch"])
+        admin = session["admin"], staff= session["staff"], role_switch= session["role_switch"],
+        logged_in = session['logged_in'])
 
 
 # user as an admin role switcher
@@ -322,8 +323,7 @@ if __name__ == '__main__':
 
 # If no database:
     # export INOUTBOARD_SETTINGS=instance/test_settings.py
-    # python init_setup.py
-    # python setup.py
+    # python db_config.py
     # python app.py
 
 # If existing database:
