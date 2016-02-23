@@ -100,7 +100,7 @@ def make_session_permanent():
 @login_manager.unauthorized_handler
 def unauthorized_callback():
     flash('Cannot validate authentication request.', 'danger')
-    return render_template("base.html")
+    return render_template('base.html', title=app.config['BASE_HTML_TITLE'])
 
 
 @app.route('/logout')
@@ -113,7 +113,7 @@ def logout():
     logout_user()
     # url = 'https://auth.berkeley.edu/cas/logout'
     # return redirect(url,307)
-    return render_template("base.html")
+    return render_template('base.html', title=app.config['BASE_HTML_TITLE'])
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -155,15 +155,16 @@ def validate():
                 session['staff'] = False
                 session['logged_in'] = False
                 flash('You are not allowed access to this page.', 'danger')
-                return render_template("base.html")
+                return render_template('base.html', title=app.config['BASE_HTML_TITLE'])
             flash('You were logged in as %s' % name, 'success')
             login_user(user)
             session['logged_in'] = True
-            #return redirect(url_for("render_role_select")) #production
+            #return redirect(url_for('render_role_select')) #production
             # uncomment below when going commercial
 
-            return redirect(url_for("determine_user_type"))
-        return render_template("board.html", users=db.session.query(User))
+            return redirect(url_for('determine_user_type'))
+        return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
+            users=db.session.query(User))
     flash('Cannot validate authentication request', 'danger')
     return redirect(url_for('login'))
 
@@ -172,19 +173,19 @@ def validate():
 def determine_user_type():
     # Change if want multiple roles per user.
     if not (session['logged_in']):
-        session["admin"] = False
-        session["staff"] = False
-        session["role_switch"] = False
+        session['admin'] = False
+        session['staff'] = False
+        session['role_switch'] = False
         return redirect(url_for('login'))
     user_type = User.query.get(session['UID']).roles[0].name
     if (user_type == 'admin'):
-        session["admin"] = True
-        session["staff"] = False
-        session["role_switch"] = True
+        session['admin'] = True
+        session['staff'] = False
+        session['role_switch'] = True
     elif (user_type == 'staff'):
-        session["admin"] = False
-        session["staff"] = True
-        session["role_switch"] = False
+        session['admin'] = False
+        session['staff'] = True
+        session['role_switch'] = False
     return redirect(url_for('render_board'))
 
 
@@ -194,30 +195,31 @@ def determine_user_type():
 def render_board():
     users = db.session.query(User)
     uids = [user.id for user in users]
-    return render_template("board.html", users=users, uids = uids,
-        admin = session["admin"], staff= session["staff"], role_switch= session["role_switch"])
+    return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
+        users=users, uids = uids, admin = session['admin'], staff= session['staff'],
+        role_switch= session['role_switch'])
 
 
 # user as an admin role switcher
 @app.route('/role_select') #production
 def render_role_select():
-    return render_template("role_select.html")
+    return render_template('role_select.html', title=app.config['BASE_HTML_TITLE'])
 
 @app.route('/role_select', methods=['POST']) #production
 def role_select():
-    selected = request.form["selected"]
+    selected = request.form['selected']
     if (selected == 'Admin'):
-        session["admin"] = True
-        session["staff"] = False
+        session['admin'] = True
+        session['staff'] = False
     elif (selected == 'Staff'):
-        session["admin"] = False
-        session["staff"] = True
+        session['admin'] = False
+        session['staff'] = True
     return redirect(url_for('render_board'))
 
 @app.route('/inOutToggle/<uid>')
 @login_required
 def inOutToggle(uid):
-	print("going in here")
+	print('going in here')
 	user = User.query.get(uid)
 	if user.in_out:
 		user.in_out = False
@@ -254,12 +256,13 @@ def edit_user_page(uid):
     user = User.query.get(uid)
     role = user.roles[0].name
     staff = False
-    if (role == "staff"):
+    if (role == 'staff'):
         staff = True
-    return render_template("edit_add_user.html", curr_uid=session['UID'],
+    return render_template('edit_add_user.html', title=app.config['BASE_HTML_TITLE'],
+        curr_uid=session['UID'],
         edit_mode=True, add_mode=False, user=user, staff=staff)
 
-@app.route('/edit_user/<uid>', methods=["POST"])
+@app.route('/edit_user/<uid>', methods=['POST'])
 @login_required
 def edit_user(uid):
     user = User.query.get(uid)
@@ -267,8 +270,8 @@ def edit_user(uid):
     user.first_name = request.form['first-name']
     user.last_name = request.form['last-name']
     user.url = request.form['url']
-    user.name = user.first_name + " " + user.last_name
-    selected_role = request.form["selected_role"]
+    user.name = user.first_name + ' ' + user.last_name
+    selected_role = request.form['selected_role']
     if not (user.roles[0].name == selected_role):
         if selected_role == 'staff':
             user.roles.pop(0)
@@ -283,12 +286,13 @@ def edit_user(uid):
 @app.route('/add_user_page')
 @fresh_login_required
 def add_user_page():
-    return render_template("edit_add_user.html", edit_mode=False, add_mode=True)
+    return render_template('edit_add_user.html', title=app.config['BASE_HTML_TITLE'],
+        edit_mode=False, add_mode=True)
 
 @login_manager.needs_refresh_handler
 def refresh():
     flash('NEED A FRESH LOGIN', 'danger')
-    return render_template("base.html")
+    return render_template('base.html', title=app.config['BASE_HTML_TITLE'])
 
 
 @app.route('/add_user', methods=['POST'])
@@ -296,13 +300,13 @@ def refresh():
 def add_user():
     fn = request.form['first-name']
     ln = request.form['last-name']
-    new_user = User(id=request.form['uid'],name=fn + " " + ln,first_name=fn,
+    new_user = User(id=request.form['uid'],name=fn + ' ' + ln,first_name=fn,
         last_name=ln,url=request.form['url'], in_out=False)
-    if (request.form["selected_role"] == "staff"):
-        print("added new member to staff")
+    if (request.form['selected_role'] == 'staff'):
+        print('added new member to staff')
         new_user.roles.append(staff_role)
     else:
-        print("added new member to admin")
+        print('added new member to admin')
         new_user.roles.append(admin_role)
     db.session.add(new_user)
     db.session.commit()

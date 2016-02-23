@@ -1,7 +1,7 @@
 <!doctype html>
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-	<title>Math Staff In/Out Board</title>
+	<title>{% if title %}{{ title }}{% else %}In/Out Board{% endif %}</title>
 
 	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
@@ -59,7 +59,7 @@
 				{% if role_switch %}
 					<li><a href="{{ url_for('render_role_select') }}">Role Select</a></li>
 				{% endif%}
-				{% if admin %}					
+				{% if admin %}
 					<li><a href="{{ url_for('add_user_page') }}">Add User</a></li>
 				{% endif%}
 					<li><a href="{{ url_for('logout') }}">Log Out</a></li>

@@ -1,7 +1,6 @@
 import sys
 import os
-sys.path.append(os.path.abspath("../InOutBoard/instance"))
-from init_setup import *
+sys.path.append(os.path.abspath('../InOutBoard/instance'))
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import UserMixin
@@ -19,7 +18,7 @@ class User(db.Model, UserMixin):
     url = db.Column(db.String, nullable=False, unique=False)
     #email = db.Column(db.String, nullable=True, unique=True)
 
-    in_out = db.Column(db.Boolean(), nullable=True, default=False)
+    in_out = db.Column(db.Boolean(), nullable=True, default=True)
     msg = db.Column(db.String, default='')
 
     first_name = db.Column(db.String(100), nullable=True, server_default='')
