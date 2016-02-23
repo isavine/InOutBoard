@@ -138,7 +138,7 @@ def validate():
 
         ldap_obj = initialize(app.config['LDAP_SERVER'])
         if lines[0].strip() == 'yes':
-            
+
             uid = lines[1].strip()
             session['UID'] = uid
             ldap_obj.simple_bind_s()
@@ -161,7 +161,7 @@ def validate():
             session['logged_in'] = True
             #return redirect(url_for("render_role_select")) #production
             # uncomment below when going commercial
-            
+
             return redirect(url_for("determine_user_type"))
         return render_template("board.html", users=db.session.query(User))
     flash('Cannot validate authentication request', 'danger')
@@ -318,8 +318,8 @@ if __name__ == '__main__':
     })
     db.create_all()
     #app.run()
-    # run_simple('localhost', 5004, application, use_reloader=True)
-    run_simple('localhost', 5000, application, use_reloader=True)
+    run_simple('localhost', app.config['SERVER_PORT'], application, use_reloader=True)
+    # run_simple('localhost', 5000, application, use_reloader=True)
 
 # If no database:
     # export INOUTBOARD_SETTINGS=instance/test_settings.py
