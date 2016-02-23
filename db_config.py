@@ -44,9 +44,22 @@ class UserRoles(db.Model):
     user_id = db.Column(db.Integer(), db.ForeignKey('user.id', ondelete='CASCADE'))
     role_id = db.Column(db.Integer(), db.ForeignKey('role.id', ondelete='CASCADE'))
 
+
+def init_admins(admin_users, admin_role):
+    for user in admin_users:
+        id = user['id']
+        if User.query.get(id):
+	        new_user = User(user)
+	        new_user.roles.append(admin_role)
+	        db.session.add(new_user)
+	        db.session.commit()
+	return
+
+
+guest_role = Role(name='guest')
 staff_role = Role(name='staff')
 admin_role = Role(name='admin')
 
-db.create_all()
-init_admins(User, admin_role, db)
 
+db.create_all()
+init_admins(app.config['ADMIN_USERS'], admin_role)
