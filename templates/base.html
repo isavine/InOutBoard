@@ -33,7 +33,6 @@
 		<div class="navbar-header">
 			<div class="navbar-header pull-left">
 				<a id="header_title" class="navbar-brand" href="{{ url_for('render_board') }}">Math Staff In/Out Board</a>
-				<a class="navbar-brand"><b><span id="date"></span></b></a>
 			</div>
 
 			<!-- 'Sticky' (non-collapsing) menu items -->
@@ -82,22 +81,5 @@
   {% endwith %}
 
   {% block body %}{% endblock %}
-
-  <script type="text/javascript">
-	var today = new Date();
-	var dd = today.getDate();
-	var mm = today.getMonth()+1; //January is 0!
-	var yyyy = today.getFullYear();
-
-	if (dd < 10) {
-		dd = '0' + dd
-	}
-	if ( mm < 10 ) {
-		mm = '0' + mm
-	}
-
-	today = mm + '/' + dd + '/' + yyyy;
-	document.getElementById('date').innerHTML = today;
-  </script>
 
 </body>
