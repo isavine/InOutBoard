@@ -1,11 +1,11 @@
 # Import initial settings:
-  $ export INOUTBOARD_SETTINGS=instance/settings.py
-  $ python app.py
+    $ export INOUTBOARD_SETTINGS=instance/settings.py
+    $ python app.py
 
 # Example of settings.py:
     # generate SECRET_KEY with os.urandom(24)
     SECRET_KEY = '\xdd\xa6k\xe4\xff\x1c\x8eJ=nh\x1b{5\xd1\xe3\x9e\xa5\xfe\xe2\x9f\xeb\x07\x81'
-    SESSION_COOKIE_NAME = 'in_out_board'
+    SESSION_COOKIE_NAME = 'inout_board'
     CAS_URL = 'https://auth.example.com/cas/'
     SERVICE_URL = 'https://www.example.com/inout/validate'
     LDAP_SERVER = 'ldaps://ldap.example.com'
