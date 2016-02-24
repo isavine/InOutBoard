@@ -1,83 +1,83 @@
 <!doctype html>
 <head>
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-	<title>{% if title %}{{ title }}{% else %}In/Out Board{% endif %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>{% if title %}{{ title }}{% else %}In/Out Board{% endif %}</title>
 
-	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 
-	<script type="text/javascript">
-		var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-	</script>
+  <script type="text/javascript">
+    var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+  </script>
 
-	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 
-	<style>
-		body { padding-top: 70px; }
-		#save_button { vertical-align: center;}
-		#asdf { display: inline-block;}
-		.navbar-primary { background-color: #F2F2F2; }
-		.navbar-primary .navbar-toggle .icon-bar {  background-color: black; }
-		@media only screen and (max-width: 500px) {
-			#header_title { display: none; }
-		}
-		.table {font-size: 120%;}
-		.msg_input {font-size: 100%}
-	</style>
+  <style>
+    body { padding-top: 70px; }
+    #save_button { vertical-align: center;}
+    #asdf { display: inline-block;}
+    .navbar-primary { background-color: #F2F2F2; }
+    .navbar-primary .navbar-toggle .icon-bar {  background-color: black; }
+    @media only screen and (max-width: 500px) {
+      #header_title { display: none; }
+    }
+    .table {font-size: 120%;}
+    .msg_input {font-size: 100%}
+  </style>
 </head>
 
 <body>
 
 <nav role="navigation" class="navbar navbar-primary navbar-fixed-top">
-	<div class="container">
-		<div class="navbar-header">
-			<div class="navbar-header pull-left">
-				<a id="header_title" class="navbar-brand" href="{{ url_for('render_board') }}">Math Staff In/Out Board</a>
-			</div>
+  <div class="container">
+    <div class="navbar-header">
+      <div class="navbar-header pull-left">
+        <a id="header_title" class="navbar-brand" href="{{ url_for('render_board') }}">{% if title %}{{ title }}{% else %}In/Out Board{% endif %}</a>
+      </div>
 
-			<!-- 'Sticky' (non-collapsing) menu items -->
-			<div class="navbar-header pull-right">
-				<ul class="nav pull-left">
-					<button id="save_refresh_btn" type="button" class="btn btn-primary navbar-btn" onclick="location.href='{{ url_for('render_board') }}'" >Refresh</button>
-				</ul>
-				<!-- Collapsed Menu Button -->
-				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-				</button>
-			</div>
-		</div>
+      <!-- 'Sticky' (non-collapsing) menu items -->
+      <div class="navbar-header pull-right">
+        <ul class="nav pull-left">
+          <button id="save_refresh_btn" type="button" class="btn btn-primary navbar-btn" onclick="location.href='{{ url_for('render_board') }}'" >Refresh</button>
+        </ul>
+        <!-- Collapsed Menu Button -->
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+      </div>
+    </div>
 
-		<!-- Additional navbar items -->
-		<div id="navbar"class="collapse navbar-collapse navbar-right">
-			<ul class="nav navbar-nav navbar-right">
-			{% if not session.logged_in %}
-				<li><a href="{{ url_for('login') }}">CalNet Login</a></li>
-			{% else %}
-				{% if role_switch %}
-					<li><a href="{{ url_for('render_role_select') }}">Role Select</a></li>
-				{% endif%}
-				{% if admin %}
-					<li><a href="{{ url_for('add_user_page') }}">Add User</a></li>
-				{% endif%}
-					<li><a href="{{ url_for('logout') }}">Log Out</a></li>
-			{% endif %}
-			</ul>
-		</div>
-	</div>
+    <!-- Additional navbar items -->
+    <div id="navbar"class="collapse navbar-collapse navbar-right">
+      <ul class="nav navbar-nav navbar-right">
+      {% if not session.logged_in %}
+        <li><a href="{{ url_for('login') }}">CalNet Login</a></li>
+      {% else %}
+        {% if role_switch %}
+          <li><a href="{{ url_for('render_role_select') }}">Role Select</a></li>
+        {% endif%}
+        {% if admin %}
+          <li><a href="{{ url_for('add_user_page') }}">Add User</a></li>
+        {% endif%}
+          <li><a href="{{ url_for('logout') }}">Log Out</a></li>
+      {% endif %}
+      </ul>
+    </div>
+  </div>
 </nav>
 
 
   {% with messages = get_flashed_messages(with_categories=true) %}
-	  {% for category, message in messages %}
-		<div class="alert alert-{{ category }} alert-dismissible" role="alert">
-		  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-			<span aria-hidden="true">&times;</span>
-		  </button>
-		  {{ message }}
-		</div>
-	  {% endfor %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+      </button>
+      {{ message }}
+    </div>
+    {% endfor %}
   {% endwith %}
 
   {% block body %}{% endblock %}
