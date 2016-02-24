@@ -1,6 +1,6 @@
-import sys
-import os
-sys.path.append(os.path.abspath('../InOutBoard/instance'))
+#import sys
+#import os
+#sys.path.append(os.path.abspath('../InOutBoard/instance'))
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import UserMixin
@@ -44,15 +44,17 @@ class UserRoles(db.Model):
     role_id = db.Column(db.Integer(), db.ForeignKey('role.id', ondelete='CASCADE'))
 
 
-def init_admins(admin_users, admin_role):
+def init_admins(admin_users):
     for user in admin_users:
         id = user['id']
         if not User.query.get(id):
-	        new_user = User(user)
-	        new_user.roles.append(admin_role)
-	        db.session.add(new_user)
-	        db.session.commit()
-	return
+            # Dictionaries can deliver keyword arguments!
+            new_user = User(**user)
+            new_user.roles.append(admin_role)
+            db.session.add(new_user)
+            db.session.commit()
+        continue
+    return
 
 
 guest_role = Role(name='guest')
@@ -61,4 +63,4 @@ admin_role = Role(name='admin')
 
 
 db.create_all()
-init_admins(app.config['ADMIN_USERS'], admin_role)
+init_admins(app.config['ADMIN_USERS'])
