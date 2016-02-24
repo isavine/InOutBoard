@@ -1,20 +1,25 @@
-# Import initial settings:
-    $ export INOUTBOARD_SETTINGS=instance/settings.py
-    $ python app.py
+## How to prepare the application for the first run:
+1. Clone the application from GitHub:
+```
+$ git clone https://github.com/tommyhuynh/InOutBoard.git
+$ cd InOutBoard
+```
+2. Create virtual environment and install dependencies:
+```
+$ virtualenv venv
+$ source venv/bin/activate
+$ pip install -r requirements.txt
+```
+3. Customize initial settings:
+```
+$ mkdir instance
+$ cp example_settings.py instance/settings.py
+$ nano instance/settings.py
+```
 
-# Example of settings.py:
-    # generate SECRET_KEY with os.urandom(24)
-    SECRET_KEY = '\xdd\xa6k\xe4\xff\x1c\x8eJ=nh\x1b{5\xd1\xe3\x9e\xa5\xfe\xe2\x9f\xeb\x07\x81'
-    SESSION_COOKIE_NAME = 'inout_board'
-    CAS_URL = 'https://auth.example.com/cas/'
-    SERVICE_URL = 'https://www.example.com/inout/validate'
-    LDAP_SERVER = 'ldaps://ldap.example.com'
-    LDAP_BASE = 'ou=people,dc=example,dc=com'
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///inoutboard.db'
-    PERMANENT_SESSION_LIFETIME = 3600
-    APPLICATION_ROOT = '/inout'
-    SERVER_PORT = 5000
-    ADMIN_USERS = [
-      dict(id='12345678', name='John Doe', first_name='John', last_name='Doe',
-        url='http://johndoe.me/')
-    ]
+## How to start the application:
+```
+$ source venv/bin/activate
+$ export INOUTBOARD_SETTINGS=instance/settings.py
+$ python app.py
+```
