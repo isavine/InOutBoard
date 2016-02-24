@@ -1,6 +1,7 @@
 ## How to prepare the application for the first run:
 1. Clone the application from GitHub:
 ```
+$ cd path/to/work/directory
 $ git clone https://github.com/tommyhuynh/InOutBoard.git
 $ cd InOutBoard
 ```
@@ -19,6 +20,7 @@ $ nano instance/settings.py
 
 ## How to start the application:
 ```
+$ cd path/to/InOutBoard
 $ source venv/bin/activate
 $ export INOUTBOARD_SETTINGS=instance/settings.py
 $ python app.py
