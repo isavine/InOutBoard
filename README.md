@@ -1,11 +1,28 @@
-# If no database:
-    # export INOUTBOARD_SETTINGS=instance/test_settings.py
-    # python db_config.py
-    # python app.py
 
-# If existing database:
-    # export INOUTBOARD_SETTINGS=prod_settings.py
-    # python setup.py
-    # python app.py
+## How to prepare the application for the first run:
+### Clone the application from GitHub:
+```
+$ cd path/to/work/directory
+$ git clone https://github.com/tommyhuynh/InOutBoard.git
+$ cd InOutBoard
+```
+### Create virtual environment and install dependencies:
+```
+$ virtualenv venv
+$ source venv/bin/activate
+$ pip install -r requirements.txt
+```
+### Customize initial settings:
+```
+$ mkdir instance
+$ cp example_settings.py instance/settings.py
+$ nano instance/settings.py
+```
 
-Note: init_setup.py not included in repository.
+## How to start the application:
+```
+$ cd path/to/InOutBoard
+$ source venv/bin/activate
+$ export INOUTBOARD_SETTINGS=instance/settings.py
+$ python app.py
+```
