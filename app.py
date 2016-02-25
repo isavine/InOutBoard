@@ -1,5 +1,4 @@
 import json
-# from setup import app, db
 from db_config import User, Role, UserRoles, staff_role, admin_role, guest_role, app, db
 from flask import Flask, request, jsonify, session, g, redirect, url_for, abort, \
      render_template, flash, json
@@ -10,16 +9,15 @@ from flask.ext.login import LoginManager, login_user, UserMixin, login_required,
       fresh_login_required
 from datetime import date
 
-
 login_manager = LoginManager()
 login_manager.init_app(app)
+app.config.from_envvar('INOUTBOARD_SETTINGS', silent=False)
+
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(user_id)
 
-
-app.config.from_envvar('INOUTBOARD_SETTINGS', silent=False)
 
 @app.before_request
 def func():
@@ -31,6 +29,7 @@ def make_session_permanent():
     session.permanent = True
     return
 
+
 @login_manager.unauthorized_handler
 def unauthorized_callback():
     flash('You are logged out. Please login.', 'danger')
@@ -40,10 +39,10 @@ def unauthorized_callback():
 @app.route('/logout')
 @login_required
 def logout():
-    
     flash('You were logged out.', 'success')
     logout_user()
     if not (session['admin'] or session['staff']):
+        ''' In the event user is Guest, delete Guest User entry. '''
         user = User.query.get(session['UID'])
         db.session.delete(user)
         db.session.commit()
@@ -51,9 +50,6 @@ def logout():
     session['admin'] = False
     session['staff'] = False
     session['guest_uid'] = '0000000'
-    # session['guest UID']
-    # url = 'https://auth.berkeley.edu/cas/logout'
-    # return redirect(url,307)
     return render_template('base.html', title=app.config['BASE_HTML_TITLE'])
 
 
@@ -61,9 +57,22 @@ def logout():
 def login():
     session['admin'] = False
     session['staff'] = False
+    filter_out_guests()
     url = app.config['CAS_URL'] + 'login?' + \
         urlencode({'service': app.config['SERVICE_URL']})
     return redirect(url, 307)
+
+
+def filter_out_guests():
+    ''' 
+    In the event a Guest User had session timeout or didn't logout.
+
+    '''
+    users = db.session.query(User)
+    for user in users:
+        if(user.name == '#$@Guest User#$@'):
+            db.session.delete(user)
+    db.session.commit()
 
 
 @app.route('/validate')
@@ -75,40 +84,25 @@ def validate():
         page = urlopen(url)
         lines = page.readlines()
         page.close()
-        #print lines
-
         ldap_obj = initialize(app.config['LDAP_SERVER'])
-        if lines[0].strip() == 'yes':
 
+        if lines[0].strip() == 'yes':
             uid = lines[1].strip()
             session['UID'] = uid
             ldap_obj.simple_bind_s()
             result = ldap_obj.search_s(app.config['LDAP_BASE'], SCOPE_SUBTREE,
                 '(uid=%s)' % uid)
-            #print result
             name = result[0][1]['displayName'][0].title()
             session['name'] = name
-            #session['logout'] = False
-            #print session
             user = User.query.get(session['UID'])
             session['guest_uid'] = '0000000'
+
             if not (user):
-                session['admin'] = False
-                session['staff'] = False
-                session['guest_uid'] = session['UID']
-                new_user = User(id=session['UID'],name='Guest User',first_name='John',
-                    last_name="Doe",url="#", in_out=False)
-                new_user.roles.append(guest_role)
-                db.session.add(new_user)
-                db.session.commit()
-                user = User.query.get(session['UID'])
+                user = create_guest_user()
 
             flash('You were logged in as %s' % name, 'success')
             login_user(user)
             session['logged_in'] = True
-            #return redirect(url_for('render_role_select')) #production
-            # uncomment below when going commercial
-
             return redirect(url_for('determine_user_type'))
         return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
             date=date.today().strftime('%a %m/%d/%Y'), users=db.session.query(User))
@@ -116,10 +110,21 @@ def validate():
     return redirect(url_for('login'))
 
 
+def create_guest_user():
+    session['admin'] = False
+    session['staff'] = False
+    session['guest_uid'] = session['UID']
+    new_user = User(id=session['UID'],name='#$@Guest User#$@',first_name='John',
+        last_name="Doe",url="#", in_out=False)
+    new_user.roles.append(guest_role)
+    db.session.add(new_user)
+    db.session.commit()
+    return User.query.get(session['UID'])
+
+
 @app.route('/dut')
 @login_required
 def determine_user_type():
-    # Change if want multiple roles per user.
     if not (session['logged_in']):
         session['admin'] = False
         session['staff'] = False
@@ -145,21 +150,18 @@ def determine_user_type():
 @login_required
 def render_board():
     users = db.session.query(User).order_by(User.name)
-    #uids = [user.id for user in users]
-
     return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
         date=date.today().strftime('%a %m/%d/%Y'), users=users,
         admin = session['admin'], staff= session['staff'],
         role_switch= session['role_switch'], curr_uid = session['guest_uid'])
 
 
-
-# user as an admin role switcher
-@app.route('/role_select') #production
+@app.route('/role_select') 
 def render_role_select():
     return render_template('role_select.html', title=app.config['BASE_HTML_TITLE'])
 
-@app.route('/role_select', methods=['POST']) #production
+
+@app.route('/role_select', methods=['POST'])
 def role_select():
     selected = request.form['selected']
     if (selected == 'Admin'):
@@ -173,6 +175,7 @@ def role_select():
         session['staff'] = False
     return redirect(url_for('render_board'))
 
+
 @app.route('/inOutToggle/<uid>')
 @login_required
 def inOutToggle(uid):
@@ -185,6 +188,7 @@ def inOutToggle(uid):
 		user.in_out = True
 		db.session.commit()
 	return redirect(url_for('render_board'))
+
 
 @app.route('/message_submit')
 @login_required
@@ -200,12 +204,14 @@ def message_submit():
             db.session.commit()
     return jsonify()
 
+
 @app.route('/check_change')
 @login_required
 def check_change():
     srvr_users = db.session.query(User).all()
     result = users_schema.dump(srvr_users)
     return jsonify({'users': result.data })
+
 
 @app.route('/edit_user_page/<uid>')
 @login_required
@@ -218,6 +224,7 @@ def edit_user_page(uid):
     return render_template('edit_add_user.html', title=app.config['BASE_HTML_TITLE'],
         curr_uid=session['UID'],
         edit_mode=True, add_mode=False, user=user, staff=staff)
+
 
 @app.route('/edit_user/<uid>', methods=['POST'])
 @login_required
@@ -241,15 +248,10 @@ def edit_user(uid):
 
 
 @app.route('/add_user_page')
-@fresh_login_required
+@login_required
 def add_user_page():
     return render_template('edit_add_user.html', title=app.config['BASE_HTML_TITLE'],
         edit_mode=False, add_mode=True)
-
-@login_manager.needs_refresh_handler
-def refresh():
-    flash('NEED A FRESH LOGIN', 'danger')
-    return render_template('base.html', title=app.config['BASE_HTML_TITLE'])
 
 
 @app.route('/add_user', methods=['POST'])

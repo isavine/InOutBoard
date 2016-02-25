@@ -4,7 +4,7 @@
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import UserMixin
-#from setup import app, db
+
 
 app = Flask(__name__)
 db = SQLAlchemy(app)

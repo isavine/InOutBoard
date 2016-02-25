@@ -41,7 +41,7 @@
 	        <td>
 	          {% if staff or admin %}
 	          <input type="text" class="msg_input form-control" size=40 id="{{ user.id }}" name='{{user.id}}' value="{{user.msg}}" ></input>
-	          <!-- <button type="button" class="btn btn-default" id="submit_button" onClick="submit_msg({{user.uid}})">Submit</buttton> -->
+
 	          {% else %}
 	          <input type="text" class="msg_input form-control" size=40 id="{{ user.id }}" name='{{user.id}}' value="{{user.msg}}" readonly ></input>
 	          {% endif %}
@@ -72,7 +72,7 @@
 	        <td>
 	          {% if staff or admin %}
 	          <input type="text" class="msg_input form-control" size=40 id="{{ user.id }}" name='{{user.id}}' value="{{user.msg}}" ></input>
-	          <!-- <button type="button" class="btn btn-default" id="submit_button" onClick="submit_msg({{user.uid}})">Submit</buttton> -->
+
 	          {% else %}
 	          <input type="text" class="msg_input form-control" size=40 id="{{ user.id }}" name='{{user.id}}' value="{{user.msg}}" readonly ></input>
 	          {% endif %}
@@ -91,7 +91,6 @@
 </div>
 
 <script type="text/javascript">
-var timerId = 0;
 var saved = true;
 // Useful for turning serialized db from python into javascript readable:
 //    http://stackoverflow.com/questions/23038710/accessing-python-list-in-javascript-as-an-array
@@ -124,9 +123,6 @@ var test = function() {
     alert(asdf[i]);
     i++;
   }
-  // for (uid in uids) {
-  //  alert(uid);
-  // }
 };
 
 var change_save_refresh_button = function () {
@@ -136,49 +132,31 @@ var change_save_refresh_button = function () {
   saved = false;
 };
 
-// function() {
-//      var button = document.getElementById('save_refresh_btn');
-//      button.innerHTML = 'Save';
-//      button.setAttribute('onclick', 'submit_all_msgs()');
-//      saved = false;
-//     }
-
 $(".msg_input").on("input", change_save_refresh_button);
 
 $("#save_button").click(function(){
   saved = true;
 });
-// var check_change = function(e) {
-//  $.getJSON($SCRIPT_ROOT + '/check_change', {lcl: lcl_db},
-//    function(data) {
-//      var i = 1;
-//      while(data["users"][i]) {
-//        var user1 = data["users"][i]
-//        document.getElementById("1069134").innerHTML =  user1.msg;
-//        i++;
-//      }
-//    });
-//  return false;
-// };
 
 var blurred = false;
 window.onblur = function() { blurred = true; };
 window.onfocus = function() {
   saved && blurred && (location.reload());
 };
-//window.addEventListener("load", check_change , false);
-//TODO: Issues with "load", doesnt register that its focused.
-// window.addEventListener("focus", function() {
-//  window.location.reload();
-// }, false);
 
-// window.addEventListener("onclick", function() {
-
-// }, false);
-
-// window.addEventListener("blur", function(){
-//  clearInterval(timerId);
-// }, false);
-
+/*
+var check_change = function(e) {
+ $.getJSON($SCRIPT_ROOT + '/check_change', {lcl: lcl_db},
+   function(data) {
+     var i = 1;
+     while(data["users"][i]) {
+       var user1 = data["users"][i]
+       document.getElementById("1069134").innerHTML =  user1.msg;
+       i++;
+     }
+   });
+ return false;
+};
+*/
 </script>
 {% endblock %}
