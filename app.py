@@ -153,9 +153,13 @@ def validate():
             if not (user):
                 session['admin'] = False
                 session['staff'] = False
-                session['logged_in'] = False
-                flash('You are not allowed access to this page.', 'danger')
-                return render_template("base.html")
+                session['guest'] = True
+                session["role_switch"] = False
+                session['logged_in'] = True
+                user = User.query.get("000000")
+                login_user(user)
+                # flash('You are not allowed access to this page.', 'danger')
+                return redirect(url_for('render_board'))
             flash('You were logged in as %s' % name, 'success')
             login_user(user)
             session['logged_in'] = True
@@ -174,6 +178,7 @@ def determine_user_type():
     if not (session['logged_in']):
         session["admin"] = False
         session["staff"] = False
+        session['guest'] = False
         session["role_switch"] = False
         return redirect(url_for('login'))
     user_type = User.query.get(session['UID']).roles[0].name
@@ -181,9 +186,11 @@ def determine_user_type():
         session["admin"] = True
         session["staff"] = False
         session["role_switch"] = True
+        session['guest'] = False
     elif (user_type == 'staff'):
         session["admin"] = False
         session["staff"] = True
+        session['guest'] = False
         session["role_switch"] = False
     return redirect(url_for('render_board'))
 
@@ -196,7 +203,7 @@ def render_board():
     uids = [user.id for user in users]
     return render_template("board.html", users=users, uids = uids,
         admin = session["admin"], staff= session["staff"], role_switch= session["role_switch"],
-        logged_in = session['logged_in'])
+        guest = session["guest"])
 
 
 # user as an admin role switcher
@@ -210,9 +217,15 @@ def role_select():
     if (selected == 'Admin'):
         session["admin"] = True
         session["staff"] = False
+        session['guest'] = False
     elif (selected == 'Staff'):
         session["admin"] = False
         session["staff"] = True
+        session['guest'] = False
+    elif (selected == 'Guest'):
+        session["admin"] = False
+        session["staff"] = False
+        session["guest"] = True
     return redirect(url_for('render_board'))
 
 @app.route('/inOutToggle/<uid>')

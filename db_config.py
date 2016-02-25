@@ -63,3 +63,4 @@ admin_role = Role(name='admin')
 
 db.create_all()
 init_admins(app.config['ADMIN_USERS'], admin_role)
+# init_admins(User,admin_role,db)

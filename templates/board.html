@@ -2,7 +2,7 @@
 {% block body %}
 
 <div class=container>
-	{% if staff or admin %}
+	{% if staff or admin or guest %}
 	<table class="table table-condensed table-striped">
 		<thead>
 			<tr>
@@ -16,14 +16,23 @@
 		</thead>
 		<tbody>
 			{% for user in users %}
+			{% if not user.id == '000000' %}
 			<tr>
 				<td scope="row">
 					{% if staff or admin %}
-					{% if user.is_in() %}
-					<a name="user"  href="{{ url_for('inOutToggle', uid=user.id) }}"><button type="button" class="btn btn-danger">Out</button></a>
-					{% else %}
-					<a name="user" href="{{ url_for('inOutToggle', uid=user.id) }}"><button type="button" class="btn btn-success">In</button></a>
+						{% if user.is_in() %}
+						<a name="user"  href="{{ url_for('inOutToggle', uid=user.id) }}"><button type="button" class="btn btn-danger">Out</button></a>
+						{% else %}
+						<a name="user" href="{{ url_for('inOutToggle', uid=user.id) }}"><button type="button" class="btn btn-success">In</button></a>
+						{% endif %}
 					{% endif %}
+
+					{% if guest %}
+						{% if user.is_in() %}
+						<a name="user"  href="#"><button type="button" class="btn btn-danger">Out</button></a>
+						{% else %}
+						<a name="user" href="#"><button type="button" class="btn btn-success">In</button></a>
+						{% endif %}
 					{% endif %}
 				</td>
 				<td scope="row">
@@ -34,6 +43,10 @@
 					<input type="text" class="msg_input form-control" size=30 id="{{ user.id }}" name='{{user.id}}' value="{{user.msg}}" ></input>
 					<!-- <button type="button" class="btn btn-default" id="submit_button" onClick="submit_msg({{user.uid}})">Submit</buttton> -->
 					{% endif %}
+					{% if guest %}
+					<input type="text" class="msg_input form-control" size=30 id="{{ user.id }}" name='{{user.id}}' value="{{user.msg}}" readonly></input>
+					<!-- <button type="button" class="btn btn-default" id="submit_button" onClick="submit_msg({{user.uid}})">Submit</buttton> -->
+					{% endif %}
 				</td>
 				{% if admin %}
 				<td>
@@ -41,7 +54,9 @@
 				</td>
 				{% endif %}
 			</tr>
+			{% endif %}
 			{% endfor %}
+			
 		</tbody>
 	</table>
 	{% endif %}
