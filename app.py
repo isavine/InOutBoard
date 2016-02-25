@@ -1,6 +1,6 @@
 import json
 # from setup import app, db
-from db_config import User, Role, UserRoles, staff_role, admin_role, app, db
+from db_config import User, Role, UserRoles, staff_role, admin_role, guest_role, app, db
 from flask import Flask, request, jsonify, session, g, redirect, url_for, abort, \
      render_template, flash, json
 from ldap import initialize, SCOPE_SUBTREE
@@ -11,22 +11,6 @@ from flask.ext.login import LoginManager, login_user, UserMixin, login_required,
 from datetime import date
 
 
-
-
-# app = Flask(__name__)
-# db = SQLAlchemy(app)
-
-# app.config.update(dict(
-#     DEBUG=True,
-#     SECRET_KEY='supersecretdevelopmentkey',
-#     SESSION_COOKIE_NAME = 'in_out_board',
-#     CAS_URL = 'https://auth.berkeley.edu/cas/',
-#     SERVICE_URL = 'http://localhost:5000/validate',
-#     LDAP_SERVER = 'ldap://nds-test.berkeley.edu',
-#     LDAP_BASE = 'ou=people,dc=berkeley,dc=edu',
-#     SQLALCHEMY_DATABASE_URI = 'sqlite:////home/tommy/work/InOutBoard/.inoutboard.db',
-#     SQLALCHEMY_TRACK_MODIFICATIONS = True
-# ))
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -47,55 +31,6 @@ def make_session_permanent():
     session.permanent = True
     return
 
-# class User(db.Model):
-#     __tablename__ = 'user'
-
-#     uid = db.Column(db.String, primary_key=True, unique=True)
-#     name = db.Column(db.String, unique=False)
-#     url = db.Column(db.String, nullable=False, unique=False)
-#     #email = db.Column(db.String, nullable=True, unique=True)
-
-#     in_out = db.Column(db.Boolean(), nullable=True, default=False)
-#     msg = db.Column(db.String, default='')
-
-#     first_name = db.Column(db.String(100), nullable=True, server_default='')
-#     last_name = db.Column(db.String(100), nullable=True, server_default='')
-
-#     roles = db.relationship('Role', secondary='user_roles',
-#                 backref=db.backref('user', lazy='dynamic'))
-
-#     def is_in(self):
-#         return self.in_out
-
-# # class UserSchema(Schema):
-# #     id = fields.Str(dump_only=True)
-# #     name = fields.Str()
-# #     #email = fields.Str()
-# #     url = fields.Str()
-# #     in_out = fields.Boolean()
-# #     msg = fields.Str()
-# #     first_name = fields.Str()
-# #     last_name = fields.Str()
-
-# class Role(db.Model):
-#     __tablename__ = 'role'
-#     id = db.Column(db.Integer(), primary_key=True)
-#     name = db.Column(db.String(50), unique=False)
-
-# # Define the UserRoles data model
-# class UserRoles(db.Model):
-#     __tablename__ = 'user_roles'
-#     id = db.Column(db.Integer(), primary_key=True)
-#     user_id = db.Column(db.Integer(), db.ForeignKey('user.uid', ondelete='CASCADE'))
-#     role_id = db.Column(db.Integer(), db.ForeignKey('role.id', ondelete='CASCADE'))
-
-
-# # db_adapter = SQLAlchemyAdapter(db, User)
-# # user_manager = UserManager(db_adapter, app)
-# staff_role = Role(name='staff')
-# admin_role = Role(name='admin')
-# # user_schema = UserSchema()
-# # users_schema = UserSchema(many=True)
 @login_manager.unauthorized_handler
 def unauthorized_callback():
     flash('You are logged out. Please login.', 'danger')
@@ -105,11 +40,18 @@ def unauthorized_callback():
 @app.route('/logout')
 @login_required
 def logout():
+    
+    flash('You were logged out.', 'success')
+    logout_user()
+    if not (session['admin'] or session['staff']):
+        user = User.query.get(session['UID'])
+        db.session.delete(user)
+        db.session.commit()
     session['logged_in'] = False
     session['admin'] = False
     session['staff'] = False
-    flash('You were logged out.', 'success')
-    logout_user()
+    session['guest_uid'] = '0000000'
+    # session['guest UID']
     # url = 'https://auth.berkeley.edu/cas/logout'
     # return redirect(url,307)
     return render_template('base.html', title=app.config['BASE_HTML_TITLE'])
@@ -149,13 +91,17 @@ def validate():
             #session['logout'] = False
             #print session
             user = User.query.get(session['UID'])
+            session['guest_uid'] = '0000000'
             if not (user):
                 session['admin'] = False
                 session['staff'] = False
-
-                session['logged_in'] = False
-                flash('You are not allowed to see this page.', 'danger')
-                return render_template('base.html', title=app.config['BASE_HTML_TITLE'])
+                session['guest_uid'] = session['UID']
+                new_user = User(id=session['UID'],name='Guest User',first_name='John',
+                    last_name="Doe",url="#", in_out=False)
+                new_user.roles.append(guest_role)
+                db.session.add(new_user)
+                db.session.commit()
+                user = User.query.get(session['UID'])
 
             flash('You were logged in as %s' % name, 'success')
             login_user(user)
@@ -175,7 +121,6 @@ def validate():
 def determine_user_type():
     # Change if want multiple roles per user.
     if not (session['logged_in']):
-
         session['admin'] = False
         session['staff'] = False
         session['role_switch'] = False
@@ -189,20 +134,23 @@ def determine_user_type():
         session['admin'] = False
         session['staff'] = True
         session['role_switch'] = False
-
+    elif (user_type == 'guest'):
+        session['admin'] = False
+        session['staff'] = False
+        session['role_switch'] = False
     return redirect(url_for('render_board'))
 
 
 @app.route('/board')
 @login_required
 def render_board():
-    users = db.session.query(User)
-    uids = [user.id for user in users]
+    users = db.session.query(User).order_by(User.name)
+    #uids = [user.id for user in users]
 
     return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
-        date=date.today().strftime('%a %m/%d/%Y'), users=users, uids = uids,
+        date=date.today().strftime('%a %m/%d/%Y'), users=users,
         admin = session['admin'], staff= session['staff'],
-        role_switch= session['role_switch'])
+        role_switch= session['role_switch'], curr_uid = session['guest_uid'])
 
 
 
@@ -220,6 +168,9 @@ def role_select():
     elif (selected == 'Staff'):
         session['admin'] = False
         session['staff'] = True
+    else:
+        session['admin'] = False
+        session['staff'] = False
     return redirect(url_for('render_board'))
 
 @app.route('/inOutToggle/<uid>')
