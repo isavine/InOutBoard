@@ -201,6 +201,8 @@ def message_submit():
     for msg in parsed_msgs:
         user = User.query.get(msg['uid'])
         new_msg = msg['msg']
+        if new_msg.isspace():
+            new_msg = ""
         if user.msg != new_msg:
             user.msg = new_msg
             db.session.commit()
