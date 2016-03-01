@@ -85,7 +85,7 @@ def validate():
         lines = page.readlines()
         page.close()
         ldap_obj = initialize(app.config['LDAP_SERVER'])
-
+        print(lines)
         if lines[0].strip() == 'yes':
             uid = lines[1].strip()
             session['UID'] = uid
@@ -156,12 +156,14 @@ def render_board():
         role_switch= session['role_switch'], curr_uid = session['guest_uid'])
 
 
-@app.route('/role_select') 
+@app.route('/role_select')
+@login_required 
 def render_role_select():
     return render_template('role_select.html', title=app.config['BASE_HTML_TITLE'])
 
 
 @app.route('/role_select', methods=['POST'])
+@login_required
 def role_select():
     selected = request.form['selected']
     if (selected == 'Admin'):

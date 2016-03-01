@@ -40,10 +40,16 @@
 	        </td>
 	        <td>
 	          {% if staff or admin %}
-	          <input type="text" class="msg_input form-control" size=40 id="{{ user.id }}" name='{{user.id}}' value="{{user.msg}}" ></input>
+	          <!-- <input type="text" class="msg_input form-control" size=40 id="{{ user.id }}" name='{{user.id}}' value="{{user.msg}}" ></input> -->
+	          <!-- <textarea rows="1" type="text" class="msg_input form-control" size=40 id="{{ user.id }}" name='{{user.id}}' >{{user.msg}}</textarea> -->
+		          {% if user.msg == "" %}
+		          	<p data-editable id="{{ user.id }}" name='{{user.id}}'>n/a</p>
+		          {% else %}
+		          	<p data-editable id="{{ user.id }}" name='{{user.id}}'>{{user.msg}}</p>
+		          {% endif %}
 
 	          {% else %}
-	          <input type="text" class="msg_input form-control" size=40 id="{{ user.id }}" name='{{user.id}}' value="{{user.msg}}" readonly ></input>
+	          <textarea rows="1" type="text" class="msg_input form-control" size=40 id="{{ user.id }}" name='{{user.id}}' readonly>{{user.msg}}</textarea>
 	          {% endif %}
 	        </td>
 	        {% if admin %}
@@ -91,9 +97,58 @@
 </div>
 
 <script type="text/javascript">
-var saved = true;
-// Useful for turning serialized db from python into javascript readable:
-//    http://stackoverflow.com/questions/23038710/accessing-python-list-in-javascript-as-an-array
+
+$('body').on('click', '[data-editable]', function(){
+  var $el = $(this);
+  var uid = $el.attr('id');
+  var name = $el.attr('name');
+              
+  var $input = $('<textarea rows="2" type="text" class="msg_input form-control" size=40 />').val( $el.text() );
+  $el.replaceWith( $input );
+  
+  var save = function(){
+  	var new_msg = $input.val();
+    var $p = $('<p data-editable id=' + uid + ' name='+ name + ' />').text( new_msg );
+    $input.replaceWith( $p );
+
+    var jsonArr = [];
+    jsonArr.push({
+      uid: uid,
+      msg: new_msg
+    });
+	
+	$.getJSON($SCRIPT_ROOT + '/message_submit', {
+	new_msgs: JSON.stringify(jsonArr)
+	}, function(data) {});
+
+	return false;
+  };
+  
+
+	$input.one('blur', save).focus();
+
+	$input.keyup(function (e) {
+	    if (e.keyCode == 13) {
+	        save();
+	    }
+	});
+
+
+});
+
+
+/*
+Deprecated. 
+
+var change_save_refresh_button = function () {
+  var button = document.getElementById('save_refresh_btn');
+  button.innerHTML = 'Save';
+  button.setAttribute('onclick', 'submit_all_msgs()');
+  saved = false;
+}; */
+
+/*
+Deprecated.
 
 var submit_all_msgs = function() {
   var jsonArr = [];
@@ -102,7 +157,7 @@ var submit_all_msgs = function() {
     var uid1 = obj.getAttribute('name');
     jsonArr.push({
       uid: uid1,
-      msg: $('input[id='.concat(uid1,']')).val()
+      msg: $('textarea[id='.concat(uid1,']')).val()
     })
   });
 
@@ -113,38 +168,25 @@ var submit_all_msgs = function() {
   });
 
   return false;
-};
+}; 
+*/
 
-var test = function() {
-  alert(uids);
-  var asdf = JSON.parse(uids);
-  var i = 0;
-  while ( i < asdf.length) {
-    alert(asdf[i]);
-    i++;
-  }
-};
 
-var change_save_refresh_button = function () {
-  var button = document.getElementById('save_refresh_btn');
-  button.innerHTML = 'Save';
-  button.setAttribute('onclick', 'submit_all_msgs()');
-  saved = false;
-};
+// $(".msg_input").on("input", change_save_refresh_button);
 
-$(".msg_input").on("input", change_save_refresh_button);
+// $("#save_button").click(function(){
+//   saved = true;
+// });
 
-$("#save_button").click(function(){
-  saved = true;
-});
-
-var blurred = false;
-window.onblur = function() { blurred = true; };
-window.onfocus = function() {
-  saved && blurred && (location.reload());
-};
+// var blurred = false;
+// window.onblur = function() { blurred = true; };
+// window.onfocus = function() {
+//   saved && blurred && (location.reload());
+// };
 
 /*
+Deprecated. 
+
 var check_change = function(e) {
  $.getJSON($SCRIPT_ROOT + '/check_change', {lcl: lcl_db},
    function(data) {
