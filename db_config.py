@@ -60,6 +60,7 @@ def init_admins(admin_users):
 guest_role = Role(name='guest')
 staff_role = Role(name='staff')
 admin_role = Role(name='admin')
+dpt_role = Role(name='dpt_staff')
 
 
 db.create_all()

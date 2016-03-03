@@ -1,5 +1,5 @@
 import json
-from db_config import User, Role, UserRoles, staff_role, admin_role, guest_role, app, db
+from db_config import User, Role, UserRoles, staff_role, admin_role, guest_role, dpt_role, app, db
 from flask import Flask, request, jsonify, session, g, redirect, url_for, abort, \
      render_template, flash, json
 from ldap import initialize, SCOPE_SUBTREE
@@ -41,8 +41,9 @@ def unauthorized_callback():
 def logout():
     flash('You were logged out.', 'success')
     logout_user()
-    if not (session['admin'] or session['staff']):
+    if not (session['admin'] or session['staff'] or session['role_switch']):
         ''' In the event user is Guest, delete Guest User entry. '''
+        print("deleted guest user")
         user = User.query.get(session['UID'])
         db.session.delete(user)
         db.session.commit()
@@ -85,20 +86,23 @@ def validate():
         lines = page.readlines()
         page.close()
         ldap_obj = initialize(app.config['LDAP_SERVER'])
-        print(lines)
         if lines[0].strip() == 'yes':
             uid = lines[1].strip()
             session['UID'] = uid
             ldap_obj.simple_bind_s()
             result = ldap_obj.search_s(app.config['LDAP_BASE'], SCOPE_SUBTREE,
                 '(uid=%s)' % uid)
+            print(result)
             name = result[0][1]['displayName'][0].title()
             session['name'] = name
             user = User.query.get(session['UID'])
             session['guest_uid'] = '0000000'
 
             if not (user):
-                user = create_guest_user()
+                if (result[0][1]['berkeleyEduPrimaryDeptUnit'][0].title() == 'Pmath'):
+                    user = create_guest_user(True)
+                else:
+                    user = create_guest_user(False)
 
             flash('You were logged in as %s' % name, 'success')
             login_user(user)
@@ -110,13 +114,16 @@ def validate():
     return redirect(url_for('login'))
 
 
-def create_guest_user():
+def create_guest_user(in_dpt):
     session['admin'] = False
     session['staff'] = False
     session['guest_uid'] = session['UID']
     new_user = User(id=session['UID'],name='#$@Guest User#$@',first_name='John',
         last_name="Doe",url="#", in_out=False)
-    new_user.roles.append(guest_role)
+    if (in_dpt):
+        new_user.roles.append(dpt_role)
+    else:
+        new_user.roles.append(guest_role)
     db.session.add(new_user)
     db.session.commit()
     return User.query.get(session['UID'])
@@ -125,24 +132,19 @@ def create_guest_user():
 @app.route('/dut')
 @login_required
 def determine_user_type():
-    if not (session['logged_in']):
-        session['admin'] = False
-        session['staff'] = False
-        session['role_switch'] = False
-        return redirect(url_for('login'))
     user_type = User.query.get(session['UID']).roles[0].name
+
+    session['dpt'] = True
+    session['role_switch'] = False
+    session['admin'] = False
+    session['staff'] = False
     if (user_type == 'admin'):
         session['admin'] = True
-        session['staff'] = False
         session['role_switch'] = True
     elif (user_type == 'staff'):
-        session['admin'] = False
         session['staff'] = True
-        session['role_switch'] = False
     elif (user_type == 'guest'):
-        session['admin'] = False
-        session['staff'] = False
-        session['role_switch'] = False
+        session['dpt'] = False
     return redirect(url_for('render_board'))
 
 
@@ -150,10 +152,12 @@ def determine_user_type():
 @login_required
 def render_board():
     users = db.session.query(User).order_by(User.name)
+    print(session['dpt'])
     return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
         date=date.today().strftime('%a %m/%d/%Y'), users=users,
         admin = session['admin'], staff= session['staff'],
-        role_switch= session['role_switch'], curr_uid = session['guest_uid'])
+        role_switch= session['role_switch'], guest_uid = session['guest_uid'],
+        dpt=session['dpt'])
 
 
 @app.route('/role_select')
@@ -166,22 +170,25 @@ def render_role_select():
 @login_required
 def role_select():
     selected = request.form['selected']
+    session['guest_uid'] = '0000000'
+    session['dpt'] = True
+    session['staff'] = False
     if (selected == 'Admin'):
         session['admin'] = True
-        session['staff'] = False
     elif (selected == 'Staff'):
         session['admin'] = False
         session['staff'] = True
-    else:
+    elif (selected == 'Department'):
         session['admin'] = False
-        session['staff'] = False
+    else:
+        session['dpt'] = False
+        session['admin'] = False
     return redirect(url_for('render_board'))
 
 
 @app.route('/inOutToggle/<uid>')
 @login_required
 def inOutToggle(uid):
-	print('going in here')
 	user = User.query.get(uid)
 	if user.in_out:
 		user.in_out = False
