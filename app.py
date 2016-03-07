@@ -95,10 +95,12 @@ def validate():
             print(result)
             name = result[0][1]['displayName'][0].title()
             session['name'] = name
+            print(session['UID'])
             user = User.query.get(session['UID'])
             session['guest_uid'] = '0000000'
 
             if not (user):
+                print("Creating Guest User")
                 if (result[0][1]['berkeleyEduPrimaryDeptUnit'][0].title() == 'Pmath'):
                     user = create_guest_user(True)
                 else:
@@ -153,6 +155,10 @@ def determine_user_type():
 def render_board():
     users = db.session.query(User).order_by(User.name)
     print(session['dpt'])
+    print(session['admin'])
+    print(session['staff'])
+    print(session['guest_uid'])
+    print(session['role_switch'])
     return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
         date=date.today().strftime('%a %m/%d/%Y'), users=users,
         admin = session['admin'], staff= session['staff'],
