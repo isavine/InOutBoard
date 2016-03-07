@@ -135,7 +135,6 @@ def add_guest(in_dept):
 @login_required
 def who():
     user_type = User.query.get(session['UID']).roles[0].name
-
     session['dept'] = True
     session['role_switch'] = False
     session['admin'] = False
@@ -213,7 +212,7 @@ def message_submit():
         if new_msg.isspace():
             new_msg = ""
         if user.msg != new_msg:
-            user.msg = new_msg
+            user.msg = new_msg.rstrip()
             db.session.commit()
     return jsonify()
 
