@@ -1,5 +1,5 @@
 import json
-from db_config import User, Role, UserRoles, staff_role, admin_role, guest_role, dpt_role, app, db
+from db_config import User, Role, UserRoles, staff_role, admin_role, guest_role, dept_role, app, db
 from flask import Flask, request, jsonify, session, g, redirect, url_for, abort, \
      render_template, flash, json
 from ldap import initialize, SCOPE_SUBTREE
@@ -102,28 +102,28 @@ def validate():
             if not (user):
                 print("Creating Guest User")
                 if (result[0][1]['berkeleyEduPrimaryDeptUnit'][0].title() == 'Pmath'):
-                    user = create_guest_user(True)
+                    user = add_guest(True)
                 else:
-                    user = create_guest_user(False)
+                    user = add_guest(False)
 
             flash('You were logged in as %s' % name, 'success')
             login_user(user)
             session['logged_in'] = True
-            return redirect(url_for('determine_user_type'))
+            return redirect(url_for('who'))
         return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
             date=date.today().strftime('%a %m/%d/%Y'), users=db.session.query(User))
     flash('You are not properly logged in.', 'danger')
     return redirect(url_for('login'))
 
 
-def create_guest_user(in_dpt):
+def add_guest(in_dept):
     session['admin'] = False
     session['staff'] = False
     session['guest_uid'] = session['UID']
     new_user = User(id=session['UID'],name='#$@Guest User#$@',first_name='John',
         last_name="Doe",url="#", in_out=False)
-    if (in_dpt):
-        new_user.roles.append(dpt_role)
+    if (in_dept):
+        new_user.roles.append(dept_role)
     else:
         new_user.roles.append(guest_role)
     db.session.add(new_user)
@@ -131,12 +131,12 @@ def create_guest_user(in_dpt):
     return User.query.get(session['UID'])
 
 
-@app.route('/dut')
+@app.route('/who')
 @login_required
-def determine_user_type():
+def who():
     user_type = User.query.get(session['UID']).roles[0].name
 
-    session['dpt'] = True
+    session['dept'] = True
     session['role_switch'] = False
     session['admin'] = False
     session['staff'] = False
@@ -146,7 +146,7 @@ def determine_user_type():
     elif (user_type == 'staff'):
         session['staff'] = True
     elif (user_type == 'guest'):
-        session['dpt'] = False
+        session['dept'] = False
     return redirect(url_for('render_board'))
 
 
@@ -159,11 +159,12 @@ def render_board():
     print(session['staff'])
     print(session['guest_uid'])
     print(session['role_switch'])
+    print(session['dept'])
     return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
         date=date.today().strftime('%a %m/%d/%Y'), users=users,
         admin = session['admin'], staff= session['staff'],
         role_switch= session['role_switch'], guest_uid = session['guest_uid'],
-        dpt=session['dpt'])
+        dept=session['dept'])
 
 
 @app.route('/role_select')
@@ -177,7 +178,7 @@ def render_role_select():
 def role_select():
     selected = request.form['selected']
     session['guest_uid'] = '0000000'
-    session['dpt'] = True
+    session['dept'] = True
     session['staff'] = False
     if (selected == 'Admin'):
         session['admin'] = True
@@ -187,7 +188,7 @@ def role_select():
     elif (selected == 'Department'):
         session['admin'] = False
     else:
-        session['dpt'] = False
+        session['dept'] = False
         session['admin'] = False
     return redirect(url_for('render_board'))
 
