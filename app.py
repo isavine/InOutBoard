@@ -154,12 +154,6 @@ def who():
 @login_required
 def render_board():
     users = db.session.query(User).order_by(User.name)
-    print(session['dpt'])
-    print(session['admin'])
-    print(session['staff'])
-    print(session['guest_uid'])
-    print(session['role_switch'])
-    print(session['dept'])
     return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
         date=date.today().strftime('%a %m/%d/%Y'), users=users,
         admin = session['admin'], staff= session['staff'],
@@ -193,17 +187,18 @@ def role_select():
     return redirect(url_for('render_board'))
 
 
-@app.route('/inOutToggle/<uid>')
+@app.route('/inOutToggle')
 @login_required
-def inOutToggle(uid):
-	user = User.query.get(uid)
-	if user.in_out:
-		user.in_out = False
-		db.session.commit()
-	else:
-		user.in_out = True
-		db.session.commit()
-	return redirect(url_for('render_board'))
+def inOutToggle():
+    uid = request.args.get('uid')
+    user = User.query.get(uid)
+    if user.in_out:
+        user.in_out = False
+        db.session.commit()
+    else:
+        user.in_out = True
+        db.session.commit()
+    return jsonify(state = user.in_out)
 
 
 @app.route('/message_submit')

@@ -25,9 +25,9 @@
 	      <tr>
 	        <td scope="row">
 		          {% if user.is_in() %}
-		          <button type="button" class="btn btn-danger" onclick="location.href='{{ url_for('inOutToggle', uid=user.id) }}'">Out</button>
+		          <button type="button" data-editable-inout class="btn btn-success" name="in" id="{{user.id}}">In</button>
 		          {% else %}
-		          <button type="button" class="btn btn-success" onclick="location.href='{{ url_for('inOutToggle', uid=user.id) }}'">In</button>
+		          <button type="button" data-editable-inout class="btn btn-danger" name="out" id="{{user.id}}">Out</button>
 		          {% endif %}
 	        </td>
 	        <td scope="row">
@@ -123,8 +123,57 @@ $('body').on('click', '[data-editable]', function(){
 // 	var $input = $('<textarea rows="2" type="text" class="msg_input form-control" size=40 />').val( $el.text() );
 // 	$el.replaceWith( $input );
 // });
+$('body').on('click', '[data-editable-inout]', function(){
+  var $el = $(this);
+  var uid = $el.attr('id');
+  var state = $el.attr('name');
+
+  var toggle_inout = function(){
+  	var $out_btn = $('<button type="button" data-editable-inout class="btn btn-danger" name="out" id="' + uid + '">Out</button>')
+  	var $in_btn = $('<button type="button" data-editable-inout class="btn btn-success" name="in" id="' + uid + '">In</button>')
+	$.getJSON($SCRIPT_ROOT + '/inOutToggle', {
+		uid: uid
+	}, function(data) {
+		if (data.state) {
+			$el.replaceWith( $in_btn );
+		} else {
+			$el.replaceWith( $out_btn );
+		}
+	});
+	
+	return false;
+  };
+
+  toggle_inout();
+});
 
 
+var toggle_inout_button = function () {
+  var button = document.getElementById('refresh_btn');
+  button.innerHTML = 'Save';
+  button.setAttribute('onclick', 'submit_all_msgs()');
+  saved = false;
+}; 
+
+var toggle_inout = function(uid) {
+  var jsonArr = [];
+
+  $('.msg_input').each( function(i, obj) {
+    var uid1 = obj.getAttribute('name');
+    jsonArr.push({
+      uid: uid1,
+      msg: $('textarea[id='.concat(uid1,']')).val()
+    })
+  });
+
+  $.getJSON($SCRIPT_ROOT + '/message_submit', {
+    new_msgs: JSON.stringify(jsonArr)
+  }, function(data) {
+    location.reload()
+  });
+
+  return false;
+};
 
 /*
 Deprecated.
