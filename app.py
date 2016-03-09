@@ -103,14 +103,12 @@ def validate():
             print(session['UID'])
             user = User.query.get(session['UID'])
             session['guest_uid'] = '0000000'
-            if not (user):
-                flash('You are not allowed to see this page.', 'danger')
-                return redirect(url_for('logout'))
-            flash('You were logged in as %s' % name, 'success')
-            login_user(user)
-            session['logged_in'] = True
-            return redirect(url_for('who'))
-    flash('Login failed. Please try again.', 'danger')
+            if user:
+                flash('You were logged in as %s' % name, 'success')
+                login_user(user)
+                session['logged_in'] = True
+                return redirect(url_for('who'))
+    flash('You do not have permission to access this page.', 'danger')
     return redirect(url_for('logout'))
 
 
