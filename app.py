@@ -37,16 +37,16 @@ def unauthorized_callback():
 
 
 @app.route('/logout')
-@login_required
+# @login_required
 def logout():
-    flash('You were logged out.', 'success')
+    # flash('You were logged out.', 'success')
     logout_user()
-    if not (session['admin'] or session['staff'] or session['role_switch']):
-        ''' In the event user is Guest, delete Guest User entry. '''
-        print("deleted guest user")
-        user = User.query.get(session['UID'])
-        db.session.delete(user)
-        db.session.commit()
+    # if not (session['admin'] or session['staff'] or session['role_switch']):
+    #    ''' In the event user is Guest, delete Guest User entry. '''
+    #    print("deleted guest user")
+    #    user = User.query.get(session['UID'])
+    #    db.session.delete(user)
+    #    db.session.commit()
     session['logged_in'] = False
     session['admin'] = False
     session['staff'] = False
@@ -65,7 +65,7 @@ def login():
 
 
 def filter_out_guests():
-    ''' 
+    '''
     In the event a Guest User had session timeout or didn't logout.
 
     '''
@@ -85,27 +85,27 @@ def validate():
         page = urlopen(url)
         lines = page.readlines()
         page.close()
-        ldap_obj = initialize(app.config['LDAP_SERVER'])
         if lines[0].strip() == 'yes':
             uid = lines[1].strip()
-            session['UID'] = uid
-            ldap_obj.simple_bind_s()
-            result = ldap_obj.search_s(app.config['LDAP_BASE'], SCOPE_SUBTREE,
-                '(uid=%s)' % uid)
+    elif request.args.has_key('uid'):
+        uid = request.args['uid']
+    else:
+        uid = None
+    if uid:
+        ldap_obj = initialize(app.config['LDAP_SERVER'])
+        ldap_obj.simple_bind_s()
+        result = ldap_obj.search_s(app.config['LDAP_BASE'], SCOPE_SUBTREE, '(uid=%s)' % uid)
+        if result:
             print(result)
+            session['UID'] = uid
             name = result[0][1]['displayName'][0].title()
             session['name'] = name
             print(session['UID'])
             user = User.query.get(session['UID'])
             session['guest_uid'] = '0000000'
-
             if not (user):
-                print("Creating Guest User")
-                if (result[0][1]['berkeleyEduPrimaryDeptUnit'][0].title() == 'Pmath'):
-                    user = add_guest(True)
-                else:
-                    user = add_guest(False)
-
+                flash('You are not allowed to see this page.', 'danger')
+                return redirect(url_for('logout'))
             flash('You were logged in as %s' % name, 'success')
             login_user(user)
             session['logged_in'] = True
@@ -161,7 +161,7 @@ def render_board():
 
 
 @app.route('/role_select')
-@login_required 
+@login_required
 def render_role_select():
     return render_template('role_select.html', title=app.config['BASE_HTML_TITLE'])
 
@@ -292,4 +292,3 @@ if __name__ == '__main__':
     })
     db.create_all()
     run_simple('localhost', app.config['SERVER_PORT'], application, use_reloader=True)
-
