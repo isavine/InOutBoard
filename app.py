@@ -87,7 +87,7 @@ def validate():
         page.close()
         if lines[0].strip() == 'yes':
             uid = lines[1].strip()
-    elif request.args.has_key('uid'):
+    elif request.args.has_key('uid') and session['admin']:
         uid = request.args['uid']
     else:
         uid = None
@@ -110,10 +110,8 @@ def validate():
             login_user(user)
             session['logged_in'] = True
             return redirect(url_for('who'))
-        return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
-            date=date.today().strftime('%a %m/%d/%Y'), users=db.session.query(User))
-    flash('You are not properly logged in.', 'danger')
-    return redirect(url_for('login'))
+    flash('Login failed. Please try again.', 'danger')
+    return redirect(url_for('logout'))
 
 
 def add_guest(in_dept):
