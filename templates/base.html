@@ -35,7 +35,7 @@
 		</div>
 		<!-- Additional navbar items -->
 		<div id="navbar"class="navbar-collapse collapse">
-			<ul class="nav navbar-nav">
+			<ul class="nav navbar-nav navbar-right">
 			{% if not session.logged_in %}
 				<li><a href="{{ url_for('login') }}">CalNet Login</a></li>
 			{% else %}
