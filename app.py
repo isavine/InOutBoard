@@ -32,7 +32,7 @@ def make_session_permanent():
 
 @login_manager.unauthorized_handler
 def unauthorized_callback():
-    flash('You are logged out. Please login.', 'danger')
+    flash('You are logged out. Please login.', 'warning')
     return render_template('base.html', title=app.config['BASE_HTML_TITLE'])
 
 
