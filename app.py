@@ -41,16 +41,9 @@ def unauthorized_callback():
 def logout():
     # flash('You were logged out.', 'success')
     logout_user()
-    # if not (session['admin'] or session['staff'] or session['role_switch']):
-    #    ''' In the event user is Guest, delete Guest User entry. '''
-    #    print("deleted guest user")
-    #    user = User.query.get(session['UID'])
-    #    db.session.delete(user)
-    #    db.session.commit()
     session['logged_in'] = False
     session['admin'] = False
     session['staff'] = False
-    session['guest_uid'] = '0000000'
     return render_template('base.html', title=app.config['BASE_HTML_TITLE'])
 
 
@@ -58,22 +51,9 @@ def logout():
 def login():
     session['admin'] = False
     session['staff'] = False
-    filter_out_guests()
     url = app.config['CAS_URL'] + 'login?' + \
         urlencode({'service': app.config['SERVICE_URL']})
     return redirect(url, 307)
-
-
-def filter_out_guests():
-    '''
-    In the event a Guest User had session timeout or didn't logout.
-
-    '''
-    users = db.session.query(User)
-    for user in users:
-        if(user.name == '#$@Guest User#$@'):
-            db.session.delete(user)
-    db.session.commit()
 
 
 @app.route('/validate')
@@ -102,7 +82,6 @@ def validate():
             session['name'] = name
             print(session['UID'])
             user = User.query.get(session['UID'])
-            session['guest_uid'] = '0000000'
             if user:
                 flash('You were logged in as %s' % name, 'success')
                 login_user(user)
@@ -110,21 +89,6 @@ def validate():
                 return redirect(url_for('who'))
     flash('You do not have permission to access this page.', 'danger')
     return redirect(url_for('logout'))
-
-
-def add_guest(in_dept):
-    session['admin'] = False
-    session['staff'] = False
-    session['guest_uid'] = session['UID']
-    new_user = User(id=session['UID'],name='#$@Guest User#$@',first_name='John',
-        last_name="Doe",url="#", in_out=False)
-    if (in_dept):
-        new_user.roles.append(dept_role)
-    else:
-        new_user.roles.append(guest_role)
-    db.session.add(new_user)
-    db.session.commit()
-    return User.query.get(session['UID'])
 
 
 @app.route('/who')
@@ -152,8 +116,7 @@ def render_board():
     return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
         date=date.today().strftime('%a %m/%d/%Y'), users=users,
         admin = session['admin'], staff= session['staff'],
-        role_switch= session['role_switch'], guest_uid = session['guest_uid'],
-        dept=session['dept'])
+        role_switch= session['role_switch'], dept=session['dept'])
 
 
 @app.route('/role_select')
@@ -166,7 +129,6 @@ def render_role_select():
 @login_required
 def role_select():
     selected = request.form['selected']
-    session['guest_uid'] = '0000000'
     session['dept'] = True
     session['staff'] = False
     if (selected == 'Admin'):
@@ -208,7 +170,7 @@ def message_submit():
         if new_msg.isspace():
             new_msg = ""
         if user.msg != new_msg:
-            user.msg = new_msg.rstrip()
+            user.msg = new_msg.strip()
             db.session.commit()
     return jsonify()
 
