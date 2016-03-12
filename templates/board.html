@@ -24,11 +24,11 @@
 	      {% for user in users %}
 	      <tr>
 	        <td scope="row">
-		          {% if user.is_in() %}
-		          <button type="button" data-inout class="btn btn-success" name="in" id="{{ user.id }}">In</button>
-		          {% else %}
-		          <button type="button" data-inout class="btn btn-danger" name="out" id="{{ user.id }}">Out</button>
-		          {% endif %}
+		        {% if user.is_in() %}
+		          <button type="button" data-inout class="btn btn-success inout" name="in" id="{{ user.id }}">In</button>
+		        {% else %}
+		          <button type="button" data-inout class="btn btn-danger inout" name="out" id="{{ user.id }}">Out</button>
+		        {% endif %}
 	        </td>
 	        <td scope="row">
 	          <a href="{{ user.url }}">{{ user.name }}</a>
@@ -57,9 +57,9 @@
 			      <tr>
 			        <td scope="row">
 				      	  {% if user.is_in() %}
-				          <span class="label label-success" id="{{ user.id }}">In</span>
+				          <button type="button" class="btn btn-success inout" id="{{ user.id }}">In</button>
 				          {% else %}
-				          <span class="label label-danger" id="{{ user.id }}">Out</span>
+				          <button type="button" class="btn btn-danger inout" id="{{ user.id }}">Out</button>
 				          {% endif %}
 			        </td>
 			        <td scope="row">
@@ -119,8 +119,8 @@ $('body').on('click', '[data-inout]', function(){
   var state = $el.attr('name');
 
   var toggle_inout = function(){
-  	var $out_btn = $('<button type="button" data-inout class="btn btn-danger" name="out" id="' + uid + '">Out</button>')
-  	var $in_btn = $('<button type="button" data-inout class="btn btn-success" name="in" id="' + uid + '">In</button>')
+  	var $out_btn = $('<button type="button" data-inout class="btn inout btn-danger" name="out" id="' + uid + '">Out</button>')
+  	var $in_btn = $('<button type="button" data-inout class="btn inout btn-success" name="in" id="' + uid + '">In</button>')
 	$.getJSON($SCRIPT_ROOT + '/inOutToggle', {
 		uid: uid
 	}, function(data) {
