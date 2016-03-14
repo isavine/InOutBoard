@@ -1,7 +1,7 @@
 <!doctype html>
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-	<title>Math Staff In/Out Board</title>
+	<title>{% if title %}{{ title }}{% else %}In/Out Board{% endif %}</title>
 
 	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
@@ -14,52 +14,39 @@
 
 	<style>
 		body { padding-top: 70px; }
-		#save_button { vertical-align: center;}
-		#asdf { display: inline-block;}
-		.navbar-primary { background-color: #F2F2F2; }
-		.navbar-primary .navbar-toggle .icon-bar {  background-color: black; }
-		/* @media only screen and (max-width: 500px) {
-			#header_title { display: none; }
-		} */
-		.table {font-size: 120%;}
-		.msg_input {font-size: 100%}
+		.table { font-size: 120%; }
+		.inout { width: 50px; }
 	</style>
 </head>
 
 <body>
 
-<nav role="navigation" class="navbar navbar-primary navbar-fixed-top">
+<nav class="navbar navbar-default navbar-fixed-top">
 	<div class="container">
 		<div class="navbar-header">
-			<!-- <div class="navbar-header pull-left">
-				<a id="header_title" class="navbar-brand" href="{{ url_for('render_board') }}">In/Out Board</a>
-			</div> -->
-
-			<!-- 'Sticky' (non-collapsing) menu items -->
-			<ul class="pull-left">
-				<button id="refresh_btn" type="button" class="btn btn-primary navbar-btn" onclick="location.href='{{ url_for('render_board') }}'" >Refresh</button>
-			</ul>
+			<a class="navbar-brand" href="{{ url_for('render_board') }}">
+        <span class="label label-primary">Refresh</span>
+      </a>
 			<!-- Collapsed Menu Button -->
-			<button type="button" class="navbar-toggle pull-right collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
 				<span class="icon-bar"></span>
 				<span class="icon-bar"></span>
 				<span class="icon-bar"></span>
 			</button>
 		</div>
-
 		<!-- Additional navbar items -->
-		<div id="navbar"class="collapse navbar-collapse navbar-right">
+		<div id="navbar"class="navbar-collapse collapse">
 			<ul class="nav navbar-nav navbar-right">
 			{% if not session.logged_in %}
 				<li><a href="{{ url_for('login') }}">CalNet Login</a></li>
 			{% else %}
 				{% if role_switch %}
-					<li><a href="{{ url_for('render_role_select') }}">Role Select</a></li>
+					<li><a href="{{ url_for('render_role_select') }}">Select Role</a></li>
 				{% endif%}
 				{% if admin %}
 					<li><a href="{{ url_for('add_user_page') }}">Add User</a></li>
 				{% endif%}
-					<li><a href="{{ url_for('logout') }}">Log Out</a></li>
+					<li><a href="{{ url_for('logout') }}">Logout</a></li>
 			{% endif %}
 			</ul>
 		</div>
@@ -77,7 +64,6 @@
 	  {% endfor %}
 
   {% endwith %}
-
 
   {% block body %}{% endblock %}
 

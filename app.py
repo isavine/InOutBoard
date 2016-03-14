@@ -32,25 +32,18 @@ def make_session_permanent():
 
 @login_manager.unauthorized_handler
 def unauthorized_callback():
-    flash('You are logged out. Please login.', 'danger')
+    flash('You are logged out. Please login.', 'warning')
     return render_template('base.html', title=app.config['BASE_HTML_TITLE'])
 
 
 @app.route('/logout')
-@login_required
+# @login_required
 def logout():
-    flash('You were logged out.', 'success')
+    # flash('You were logged out.', 'success')
     logout_user()
-    if not (session['admin'] or session['staff'] or session['role_switch']):
-        ''' In the event user is Guest, delete Guest User entry. '''
-        print("deleted guest user")
-        user = User.query.get(session['UID'])
-        db.session.delete(user)
-        db.session.commit()
     session['logged_in'] = False
     session['admin'] = False
     session['staff'] = False
-    session['guest_uid'] = '0000000'
     return render_template('base.html', title=app.config['BASE_HTML_TITLE'])
 
 
@@ -58,22 +51,9 @@ def logout():
 def login():
     session['admin'] = False
     session['staff'] = False
-    filter_out_guests()
     url = app.config['CAS_URL'] + 'login?' + \
         urlencode({'service': app.config['SERVICE_URL']})
     return redirect(url, 307)
-
-
-def filter_out_guests():
-    ''' 
-    In the event a Guest User had session timeout or didn't logout.
-
-    '''
-    users = db.session.query(User)
-    for user in users:
-        if(user.name == '#$@Guest User#$@'):
-            db.session.delete(user)
-    db.session.commit()
 
 
 @app.route('/validate')
@@ -85,64 +65,31 @@ def validate():
         page = urlopen(url)
         lines = page.readlines()
         page.close()
-        ldap_obj = initialize(app.config['LDAP_SERVER'])
         if lines[0].strip() == 'yes':
             uid = lines[1].strip()
-            session['UID'] = uid
-            ldap_obj.simple_bind_s()
-            result = ldap_obj.search_s(app.config['LDAP_BASE'], SCOPE_SUBTREE,
-                '(uid=%s)' % uid)
+    elif request.args.has_key('uid') and session['admin']:
+        uid = request.args['uid']
+    else:
+        uid = None
+    if uid:
+        ldap_obj = initialize(app.config['LDAP_SERVER'])
+        ldap_obj.simple_bind_s()
+        result = ldap_obj.search_s(app.config['LDAP_BASE'], SCOPE_SUBTREE, '(uid=%s)' % uid)
+        if result:
             print(result)
+            session['UID'] = uid
             name = result[0][1]['displayName'][0].title()
             session['name'] = name
             print(session['UID'])
             user = User.query.get(session['UID'])
-            session['guest_uid'] = '0000000'
 
-            if not (user):
-                print("Creating Guest User")
-                if (result[0][1]['berkeleyEduPrimaryDeptUnit'][0].title() == 'Pmath'):
-                    user = add_guest(True)
-                else:
-                    user = add_guest(False)
-
-            flash('You were logged in as %s' % name, 'success')
-            login_user(user)
-            session['logged_in'] = True
-            test()
-            return redirect(url_for('who'))
-        return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
-            date=date.today().strftime('%a %m/%d/%Y'), users=db.session.query(User))
-    flash('You are not properly logged in.', 'danger')
-    return redirect(url_for('login'))
-
-
-def test():
-    print("HELLO WORLD")
-    all_roles = Role.query.filter_by(id=UserRoles.role_id).all()
-    # all_roles = [admin, staff, dept, ...]
-    print(all_roles[1].name)
-    print(all_roles[1].users)
-    print(all_roles[1].users[1].name)
-    # i = 0
-    # while (role != all_roles[i].name):
-    #     i++
-    # all_roles[i].users 
-    print("///HELLO WORLD")
-
-def add_guest(in_dept):
-    session['admin'] = False
-    session['staff'] = False
-    session['guest_uid'] = session['UID']
-    new_user = User(id=session['UID'],name='#$@Guest User#$@',first_name='John',
-        last_name="Doe",url="#", in_out=False)
-    if (in_dept):
-        new_user.roles.append(dept_role)
-    else:
-        new_user.roles.append(guest_role)
-    db.session.add(new_user)
-    db.session.commit()
-    return User.query.get(session['UID'])
+            if user:
+                flash('You were logged in as %s' % name, 'success')
+                login_user(user)
+                session['logged_in'] = True
+                return redirect(url_for('who'))
+    flash('You do not have permission to access this page.', 'danger')
+    return redirect(url_for('logout'))
 
 
 @app.route('/who')
@@ -170,12 +117,11 @@ def render_board():
     return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
         date=date.today().strftime('%a %m/%d/%Y'), users=users,
         admin = session['admin'], staff= session['staff'],
-        role_switch= session['role_switch'], guest_uid = session['guest_uid'],
-        dept=session['dept'])
+        role_switch= session['role_switch'], dept=session['dept'])
 
 
 @app.route('/role_select')
-@login_required 
+@login_required
 def render_role_select():
     return render_template('role_select.html', title=app.config['BASE_HTML_TITLE'])
 
@@ -184,7 +130,6 @@ def render_role_select():
 @login_required
 def role_select():
     selected = request.form['selected']
-    session['guest_uid'] = '0000000'
     session['dept'] = True
     session['staff'] = False
     if (selected == 'Admin'):
@@ -226,7 +171,7 @@ def message_submit():
         if new_msg.isspace():
             new_msg = ""
         if user.msg != new_msg:
-            user.msg = new_msg.rstrip()
+            user.msg = new_msg.strip()
             db.session.commit()
     return jsonify()
 
@@ -306,4 +251,3 @@ if __name__ == '__main__':
     })
     db.create_all()
     run_simple('localhost', app.config['SERVER_PORT'], application, use_reloader=True)
-

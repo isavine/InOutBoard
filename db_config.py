@@ -35,7 +35,7 @@ class User(db.Model, UserMixin):
 class Role(db.Model):
     __tablename__ = 'role'
     id = db.Column(db.Integer(), primary_key=True)
-    name = db.Column(db.String(50), unique=False)
+    name = db.Column(db.String(50), unique=True)
     users = db.relationship('User', secondary="user_roles",
                                backref=db.backref('users', lazy='dynamic'))
 
