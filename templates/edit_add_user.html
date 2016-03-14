@@ -23,20 +23,15 @@
       <input id="url_form" class="form-control" type=url size=30 name=url required>
     </fieldset>
 
-    <div class="radio">
-        <label>
-          <input type="radio" name="selected_role" value="staff" checked>
-          Staff
-        </label>
+    <div class="checkbox">
+      {% for role in roles %}
+      <label>
+        <input type="checkbox" name="{{ role.name }}" id="{{ role.name }}"> {{role.name}}
+      </label>
+      {% endfor %}
     </div>
-      <div class="radio">
-        <label>
-           <input type="radio" name="selected_role" value="admin">
-          Admin
-        </label>
-      </div>
 
-      <button type="submit" class="btn btn-primary">Add User</button>
+    <button type="submit" class="btn btn-primary">Add User</button>
 
   </form>
 
@@ -63,7 +58,19 @@
       <input id="url_form" class="form-control" type=url size=30 name=url value="{{user.url}}" required>
     </fieldset>
 
-    {% if not curr_uid == user.id %}
+    <div class="checkbox">
+      {% for role in roles %}
+      <label>
+        {% if role in user_roles %}
+          <input type="checkbox" name="{{ role.name }}" id="{{ role.name }}" checked> {{role.name}}
+        {% else %}
+          <input type="checkbox" name="{{ role.name }}" id="{{ role.name }}" > {{role.name}}
+        {% endif %}
+      </label>
+      {% endfor %}
+    </div>
+
+    <!-- {% if not curr_uid == user.id %}
           {% if staff %}
             <div class="radio">
             <label>
@@ -104,10 +111,10 @@
             Admin
           </label>
         </div>
-      {% endif %}
+      {% endif %} -->
       <div class="row">
         <button type="submit" class="btn btn-primary">Confirm Changes</button>
-        <button type="submit" class="btn btn-default">Cancel</button>
+        <button onclick="location.href='{{ url_for('render_board') }}'" class="btn btn-default">Cancel</button>
       </div>
 </form>
 

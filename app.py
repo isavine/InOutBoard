@@ -1,5 +1,5 @@
 import json
-from db_config import User, Role, UserRoles, staff_role, admin_role, guest_role, dept_role, app, db
+from db_config import User, Role, UserRoles, guest_role, dept_role, app, db
 from flask import Flask, request, jsonify, session, g, redirect, url_for, abort, \
      render_template, flash, json
 from ldap import initialize, SCOPE_SUBTREE
@@ -82,7 +82,6 @@ def validate():
             session['name'] = name
             print(session['UID'])
             user = User.query.get(session['UID'])
-
             if user:
                 flash('You were logged in as %s' % name, 'success')
                 login_user(user)
@@ -90,6 +89,10 @@ def validate():
                 return redirect(url_for('who'))
     flash('You do not have permission to access this page.', 'danger')
     return redirect(url_for('logout'))
+
+
+def user_query(role):
+    return Role.query.filter_by(id=UserRoles.role_id).filter_by(name=role).all()[0].users
 
 
 @app.route('/who')
@@ -113,7 +116,7 @@ def who():
 @app.route('/board')
 @login_required
 def render_board():
-    users = db.session.query(User).order_by(User.name)
+    users = user_query("staff")
     return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
         date=date.today().strftime('%a %m/%d/%Y'), users=users,
         admin = session['admin'], staff= session['staff'],
@@ -188,13 +191,11 @@ def check_change():
 @login_required
 def edit_user_page(uid):
     user = User.query.get(uid)
-    role = user.roles[0].name
-    staff = False
-    if (role == 'staff'):
-        staff = True
+    roles = user.roles
+    print(roles)
     return render_template('edit_add_user.html', title=app.config['BASE_HTML_TITLE'],
         curr_uid=session['UID'],
-        edit_mode=True, add_mode=False, user=user, staff=staff)
+        edit_mode=True, add_mode=False, user=user, user_roles = roles, roles=Role.query.all())
 
 
 @app.route('/edit_user/<uid>', methods=['POST'])
@@ -206,14 +207,16 @@ def edit_user(uid):
     user.last_name = request.form['last-name']
     user.url = request.form['url']
     user.name = user.first_name + ' ' + user.last_name
-    selected_role = request.form['selected_role']
-    if not (user.roles[0].name == selected_role):
-        if selected_role == 'staff':
-            user.roles.pop(0)
-            user.roles.append(staff_role)
+    
+    for role in Role.query.all():
+        # Role is checked
+        if request.form.get(role.name):
+            if role not in user.roles:
+                user.roles.append(get_role(role.name))
+        # Role is unchecked
         else:
-            user.roles.pop(0)
-            user.roles.append(admin_role)
+            if role in user.roles:
+                user.roles.remove(role)
     db.session.commit()
     return redirect(url_for('render_board'))
 
@@ -222,7 +225,7 @@ def edit_user(uid):
 @login_required
 def add_user_page():
     return render_template('edit_add_user.html', title=app.config['BASE_HTML_TITLE'],
-        edit_mode=False, add_mode=True)
+        edit_mode=False, add_mode=True, roles=Role.query.all())
 
 
 @app.route('/add_user', methods=['POST'])
@@ -232,16 +235,20 @@ def add_user():
     ln = request.form['last-name']
     new_user = User(id=request.form['uid'],name=fn + ' ' + ln,first_name=fn,
         last_name=ln,url=request.form['url'], in_out=False)
-    if (request.form['selected_role'] == 'staff'):
-        print('added new member to staff')
-        new_user.roles.append(staff_role)
-    else:
-        print('added new member to admin')
-        new_user.roles.append(admin_role)
+
+    for role in Role.query.all():
+        if request.form.get(role.name):
+            new_user.roles.append(get_role(role.name))
+
     db.session.add(new_user)
     db.session.commit()
     return redirect(url_for('render_board'))
 
+def get_role(role_name):
+    roles = Role.query.all()
+    for role in roles:
+        if role.name == role_name:
+            return role
 
 if __name__ == '__main__':
     from werkzeug.serving import run_simple
