@@ -25,8 +25,9 @@ class User(db.Model, UserMixin):
     last_name = db.Column(db.String(100), nullable=True, server_default='')
     extra = db.Column(db.String(100), nullable=True, server_default='')
 
-    roles = db.relationship('Role', secondary='user_roles',
-                backref=db.backref('user', lazy='dynamic'))
+    roles = db.relationship('Role', secondary="user_roles",
+                                 backref=db.backref('roles',
+                                                    lazy='dynamic'))
 
     def is_in(self):
         return self.in_out
@@ -35,6 +36,8 @@ class Role(db.Model):
     __tablename__ = 'role'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(50), unique=False)
+    users = db.relationship('User', secondary="user_roles",
+                               backref=db.backref('users', lazy='dynamic'))
 
 # Define the UserRoles data model
 class UserRoles(db.Model):
@@ -51,6 +54,7 @@ def init_admins(admin_users):
             # Dictionaries can deliver keyword arguments!
             new_user = User(**user)
             new_user.roles.append(admin_role)
+            new_user.roles.append(staff_role)
             db.session.add(new_user)
             db.session.commit()
         continue

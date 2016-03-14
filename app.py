@@ -109,12 +109,26 @@ def validate():
             flash('You were logged in as %s' % name, 'success')
             login_user(user)
             session['logged_in'] = True
+            test()
             return redirect(url_for('who'))
         return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
             date=date.today().strftime('%a %m/%d/%Y'), users=db.session.query(User))
     flash('You are not properly logged in.', 'danger')
     return redirect(url_for('login'))
 
+
+def test():
+    print("HELLO WORLD")
+    all_roles = Role.query.filter_by(id=UserRoles.role_id).all()
+    # all_roles = [admin, staff, dept, ...]
+    print(all_roles[1].name)
+    print(all_roles[1].users)
+    print(all_roles[1].users[1].name)
+    # i = 0
+    # while (role != all_roles[i].name):
+    #     i++
+    # all_roles[i].users 
+    print("///HELLO WORLD")
 
 def add_guest(in_dept):
     session['admin'] = False
