@@ -92,7 +92,9 @@ def validate():
 
 
 def user_query(role):
-    return Role.query.filter_by(id=UserRoles.role_id).filter_by(name=role).all()[0].users
+    role = Role.query.filter_by(id=UserRoles.role_id).filter_by(name=role).one()
+    users = role.users.filter_by(active=True).order_by(User.name)
+    return users
 
 
 @app.route('/who')
@@ -234,7 +236,7 @@ def add_user():
     fn = request.form['first-name']
     ln = request.form['last-name']
     new_user = User(id=request.form['uid'],name=fn + ' ' + ln,first_name=fn,
-        last_name=ln,url=request.form['url'], in_out=False)
+        last_name=ln,url=request.form['url'], in_out=False, active=True)
 
     for role in Role.query.all():
         if request.form.get(role.name):
