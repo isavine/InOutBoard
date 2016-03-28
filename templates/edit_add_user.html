@@ -1,125 +1,64 @@
 {% extends "base.html" %}
 {% block body %}
 <div class='container'>
-{% if add_mode %}
-  <form action="{{ url_for('add_user') }}" method=post class=add-user>
-    <fieldset class="form-group">
-      <label for"fn">First Name:</label>
-      <input id="fn" class="form-control" type=text size=30 name=first-name required>
-    </fieldset>
 
-    <fieldset class="form-group">
-      <label for"ln">Last Name:</label>
-      <input id="ln" class="form-control" type=text size=30 name=last-name required>
-    </fieldset>
+  {% if add_mode %}
+    <form action="{{ url_for('add_user') }}" method=post >
+  {% else %}
+    <form action="{{ url_for('edit_user', uid=user.id) }}" method=post>
+  {% endif %}
 
-    <fieldset class="form-group">
-      <label for"uid_form">UID:</label>
-      <input id="uid_form" class="form-control" type=text size=30 name=uid required>
-    </fieldset>
+      <fieldset class="form-group">
+        <label for"fn">First Name:</label>
+        <p>{{form.first_name}}</p>
+      </fieldset>
 
-    <fieldset class="form-group">
-      <label for"url_form">URL:</label>
-      <input id="url_form" class="form-control" type=url size=30 name=url required>
-    </fieldset>
+      <fieldset class="form-group">
+        <label for"ln">Last Name:</label>
+       <p> {{form.last_name}}</p>
+      </fieldset>
 
-    <div class="checkbox">
-      {% for role in roles %}
-      <label>
-        <input type="checkbox" name="{{ role.name }}" id="{{ role.name }}"> {{role.name}}
-      </label>
-      {% endfor %}
-    </div>
+      <fieldset class="form-group">
+        <label for"uid_form">UID:</label>
+        <p>{{form.UID}} </p>
+      </fieldset>
 
-    <button type="submit" class="btn btn-primary">Add User</button>
+      <fieldset class="form-group">
+        <label for"url_form">URL:</label>
+        <p>{{form.URL}}</p>
+      </fieldset>
 
+      <div class="checkbox">
+        {% if add_mode %}
+          {% for role in roles %}
+            <label><input type="checkbox" name="{{ role.name }}" id="{{ role.name }}"> {{role.name}}</label>
+          {% endfor %}
+
+        {% else %}
+          {% for role in roles %}
+            <label>
+              {% if role in user_roles %}
+                <input type="checkbox" name="{{ role.name }}" id="{{ role.name }}" checked> {{role.name}}
+              {% else %}
+                <input type="checkbox" name="{{ role.name }}" id="{{ role.name }}" > {{role.name}}
+              {% endif %}
+            </label>
+          {% endfor %}
+
+        {% endif %}
+      </div>
+
+        {{ form.csrf_token }}
+        {% if add_mode %}
+          <button type="submit" class="btn btn-primary">Add User</button>
+        {% else %}
+          <div class="container row">
+            <button type="submit" class="btn btn-primary">Confirm Changes</button>
+            <button type="button" onclick="location.href='{{ url_for('render_board') }}'" class="btn btn-default">Cancel</button>
+          </div>
+        {% endif %}
+        
   </form>
-
-
-{% else %}
-<form action="{{ url_for('edit_user', uid=user.id) }}" method=post class=add-user>
-    <fieldset class="form-group">
-      <label for"fn">First Name:</label>
-      <input id="fn" class="form-control" type=text size=30 name=first-name value="{{user.first_name}}" required>
-    </fieldset>
-
-    <fieldset class="form-group">
-      <label for"ln">Last Name:</label>
-      <input id="ln" class="form-control" type=text size=30 name=last-name value="{{user.last_name}}" required>
-    </fieldset>
-
-    <fieldset class="form-group">
-      <label for"uid_form">UID:</label>
-      <input id="uid_form" class="form-control" type=text size=30 name=uid value="{{user.id}}" readonly>
-    </fieldset>
-
-    <fieldset class="form-group">
-      <label for"url_form">URL:</label>
-      <input id="url_form" class="form-control" type=url size=30 name=url value="{{user.url}}" required>
-    </fieldset>
-
-    <div class="checkbox">
-      {% for role in roles %}
-      <label>
-        {% if role in user_roles %}
-          <input type="checkbox" name="{{ role.name }}" id="{{ role.name }}" checked> {{role.name}}
-        {% else %}
-          <input type="checkbox" name="{{ role.name }}" id="{{ role.name }}" > {{role.name}}
-        {% endif %}
-      </label>
-      {% endfor %}
-    </div>
-
-    <!-- {% if not curr_uid == user.id %}
-          {% if staff %}
-            <div class="radio">
-            <label>
-              <input type="radio" name="selected_role" value="staff" checked>
-              Staff
-            </label>
-        </div>
-          <div class="radio">
-            <label>
-               <input type="radio" name="selected_role" value="admin">
-              Admin
-            </label>
-          </div>
-        {% else %}
-        <div class="radio">
-            <label>
-              <input type="radio" name="selected_role" value="staff">
-              Staff
-            </label>
-        </div>
-          <div class="radio">
-            <label>
-               <input type="radio" name="selected_role" value="admin" checked>
-              Admin
-            </label>
-          </div>
-        {% endif %}
-      {% else %}
-        <div class="radio">
-          <label>
-            <input type="radio" name="selected_role" value="staff" disabled>
-            Staff
-          </label>
-      </div>
-        <div class="radio">
-          <label>
-             <input type="radio" name="selected_role" value="admin" checked >
-            Admin
-          </label>
-        </div>
-      {% endif %} -->
-      <div class="container row">
-        <button type="submit" class="btn btn-primary">Confirm Changes</button>
-        <button type="button" onclick="location.href='{{ url_for('render_board') }}'" class="btn btn-default">Cancel</button>
-      </div>
-</form>
-
-
-{% endif %}
 </div>
 {% endblock %}
 

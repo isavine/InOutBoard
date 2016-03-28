@@ -8,11 +8,27 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager, login_user, UserMixin, login_required, logout_user, \
       fresh_login_required
 from datetime import date
+from flask_wtf import Form
+from wtforms import StringField, PasswordField, BooleanField, IntegerField
+from wtforms.validators import DataRequired, Email, URL
 
 login_manager = LoginManager()
 login_manager.init_app(app)
 app.config.from_envvar('INOUTBOARD_SETTINGS', silent=False)
 
+class UserForm(Form):
+    first_name = StringField('First', validators=[DataRequired()])
+    last_name = StringField('Last', validators=[DataRequired()])
+    UID = IntegerField("UID", validators=[DataRequired()])
+    URL = StringField("URL", validators=[DataRequired(), URL()])
+
+def flash_errors(form):
+    for field, errors in form.errors.items():
+        for error in errors:
+            flash(u"Error in the %s field - %s" % (
+                getattr(form, field).label.text,
+                error
+            ), 'danger')
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -189,62 +205,111 @@ def check_change():
     return jsonify({'users': result.data })
 
 
-@app.route('/edit_user_page/<uid>')
-@login_required
-def edit_user_page(uid):
-    user = User.query.get(uid)
-    roles = user.roles
-    print(roles)
-    return render_template('edit_add_user.html', title=app.config['BASE_HTML_TITLE'],
-        curr_uid=session['UID'],
-        edit_mode=True, add_mode=False, user=user, user_roles = roles, roles=Role.query.all())
+##################### Edit User #####################
 
-
-@app.route('/edit_user/<uid>', methods=['POST'])
+@app.route('/edit_user/<uid>', methods=['POST', 'GET'])
 @login_required
 def edit_user(uid):
     user = User.query.get(uid)
-    user.id = request.form['uid']
-    user.first_name = request.form['first-name']
-    user.last_name = request.form['last-name']
-    user.url = request.form['url']
-    user.name = user.first_name + ' ' + user.last_name
-    
-    for role in Role.query.all():
-        # Role is checked
-        if request.form.get(role.name):
-            if role not in user.roles:
-                user.roles.append(get_role(role.name))
-        # Role is unchecked
-        else:
-            if role in user.roles:
-                user.roles.remove(role)
-    db.session.commit()
-    return redirect(url_for('render_board'))
+    form = UserForm(first_name=user.first_name, last_name=user.last_name, URL=user.url, UID=user.id)
+    roles = user.roles
 
+    if form.validate_on_submit():
+        user.id = request.form['UID']
+        user.first_name = request.form['first_name']
+        user.last_name = request.form['last_name']
+        user.url = request.form['URL']
+        user.name = user.first_name + ' ' + user.last_name
+        
+        for role in Role.query.all():
+            # Role is checked
+            if request.form.get(role.name):
+                if role not in user.roles:
+                    user.roles.append(get_role(role.name))
+            # Role is unchecked
+            else:
+                if role in user.roles:
+                    user.roles.remove(role)
+        db.session.commit()
+        return redirect(url_for('render_board'))
 
-@app.route('/add_user_page')
-@login_required
-def add_user_page():
+    flash_errors(form)
     return render_template('edit_add_user.html', title=app.config['BASE_HTML_TITLE'],
-        edit_mode=False, add_mode=True, roles=Role.query.all())
+        curr_uid=session['UID'],
+        edit_mode=True, add_mode=False, user=user, user_roles = roles, roles=Role.query.all(), form=form)
 
 
-@app.route('/add_user', methods=['POST'])
+# @app.route('/edit_user/<uid>', methods=['POST'])
+# @login_required
+# def edit_user(uid):
+#     user = User.query.get(uid)
+#     user.id = request.form['UID']
+#     user.first_name = request.form['first_name']
+#     user.last_name = request.form['last_name']
+#     user.url = request.form['URL']
+#     user.name = user.first_name + ' ' + user.last_name
+    
+#     for role in Role.query.all():
+#         # Role is checked
+#         if request.form.get(role.name):
+#             if role not in user.roles:
+#                 user.roles.append(get_role(role.name))
+#         # Role is unchecked
+#         else:
+#             if role in user.roles:
+#                 user.roles.remove(role)
+#     db.session.commit()
+#     return redirect(url_for('render_board'))
+
+
+##################### Add User #####################
+
+
+@app.route('/add_user', methods=['POST', 'GET'])
 @login_required
 def add_user():
-    fn = request.form['first-name']
-    ln = request.form['last-name']
-    new_user = User(id=request.form['uid'],name=fn + ' ' + ln,first_name=fn,
-        last_name=ln,url=request.form['url'], in_out=False, active=True)
+    form = UserForm()
 
-    for role in Role.query.all():
-        if request.form.get(role.name):
-            new_user.roles.append(get_role(role.name))
+    if form.validate_on_submit():
+        fn = request.form['first_name']
+        ln = request.form['last_name']
+        new_user = User(id=request.form['UID'],name=fn + ' ' + ln,first_name=fn,
+            last_name=ln,url=request.form['URL'], in_out=False, active=True)
 
-    db.session.add(new_user)
-    db.session.commit()
-    return redirect(url_for('render_board'))
+        for role in Role.query.all():
+            if request.form.get(role.name):
+                new_user.roles.append(get_role(role.name))
+
+        db.session.add(new_user)
+        db.session.commit()
+        return redirect(url_for('render_board'))
+
+    flash_errors(form)
+    return render_template('edit_add_user.html', title=app.config['BASE_HTML_TITLE'],
+        edit_mode=False, add_mode=True, roles=Role.query.all(), form=form)
+
+# @app.route('/add_user_page')
+# @login_required
+# def add_user_page():
+#     return render_template('edit_add_user.html', title=app.config['BASE_HTML_TITLE'],
+#         edit_mode=False, add_mode=True, roles=Role.query.all())
+
+
+# @app.route('/add_user', methods=['POST'])
+# @login_required
+# def add_user():
+#     fn = request.form['first-name']
+#     ln = request.form['last-name']
+#     new_user = User(id=request.form['uid'],name=fn + ' ' + ln,first_name=fn,
+#         last_name=ln,url=request.form['url'], in_out=False, active=True)
+
+#     for role in Role.query.all():
+#         if request.form.get(role.name):
+#             new_user.roles.append(get_role(role.name))
+
+#     db.session.add(new_user)
+#     db.session.commit()
+#     return redirect(url_for('render_board'))
 
 def get_role(role_name):
     roles = Role.query.all()
