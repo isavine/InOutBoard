@@ -185,7 +185,7 @@ def inOutToggle():
 def message_submit():
     new_msgs = request.args.get('new_msgs')
     parsed_msgs = json.loads(new_msgs)
-
+    print(parsed_msgs)
     for msg in parsed_msgs:
         user = User.query.get(msg['uid'])
         new_msg = msg['msg']
