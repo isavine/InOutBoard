@@ -11,7 +11,7 @@
       <tr>
         <th scope="col"> In/Out </th>
         <th scope="col"> Name </th>
-        <th scope="col"> Message </th>
+        <th scope="col" style="width:60%"> Message </th>
         {% if admin %}
         <th> </th>
         {% endif %}
@@ -99,7 +99,7 @@
 
 $('#myModal').on('show.bs.modal', function (event) {
 	var button = $(event.relatedTarget);
-	var uid = button.attr("id"); 
+	var uid = button.attr("id");
 	var name = button.attr('name');
 	var msg = button.text();
 
