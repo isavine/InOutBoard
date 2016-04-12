@@ -12,8 +12,6 @@ from flask_wtf import Form
 from wtforms import StringField, PasswordField, BooleanField, IntegerField
 from wtforms.validators import DataRequired, Email, URL
 from admin import admin
-import flask_admin as flask_admin
-from flask_admin import Admin
 from functools import wraps
 from helpers import user_query, flash_errors
 
