@@ -94,17 +94,17 @@ $(document).on('click', '[data-msg]', function(){
 	// var id = button.attr("id");
 	// var name = button.attr('name');
 	// var msg = button.text();
+	alert("1");
 	var $el = $(this);
 	var msg_uid = $el.attr('id');
 	var msg = $el.attr('data-mesg');
 	var uid = msg_uid.slice(4);
-	
+
 	$('#myModal').modal('show');
 	// var modal = document.getElementById('#myModal')
 	//$('#myModal').modal.find('.modal-body textarea').val(msg);
 	$("#modal_text").val(msg);
 	
-
 	var save = function(clear){
 		if (clear) {
 			new_msg = "";
