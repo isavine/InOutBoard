@@ -4,7 +4,7 @@
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import UserMixin
-#from setup import app, db
+
 
 app = Flask(__name__)
 db = SQLAlchemy(app)
@@ -58,6 +58,7 @@ def init_admins(admin_users):
 
 
 guest_role = Role(name='guest')
+dept_role = Role(name='dept')
 staff_role = Role(name='staff')
 admin_role = Role(name='admin')
 
