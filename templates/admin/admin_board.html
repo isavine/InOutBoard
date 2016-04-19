@@ -9,71 +9,57 @@
         <th colspan="4" style="text-align: center;">{{ date }}</th>
       </tr>
       <tr>
-        <th scope="col"> In/Out </th>
-        <th scope="col"> Name </th>
-        <th scope="col"> Message </th>
-        {% if admin %}
-        <th> </th>
-        {% endif %}
+        <th scope="col"> Active </th>
+        <th scope="col"> First Name </th>
+        <th scope="col"> Role </th>
+        <th scope="col"> UID </th>
+        <th scope="col"> URL </th>
+        
       </tr>
     </thead>
 
 	<!-- Table for Admins and Staff -->
-    {% if admin or staff %}
 	    <tbody>
 	      {% for user in users %}
 	      <tr>
+	      	<form action="{{ url_for('admin.edit_user', uid=user.id) }}" method=post>
+	        
 	        <td scope="row">
-		        {% if user.is_in() %}
-		          <button type="button" data-inout class="btn btn-success inout" name="in" id="{{ user.id }}">In</button>
-		        {% else %}
-		          <button type="button" data-inout class="btn btn-danger inout" name="out" id="{{ user.id }}">Out</button>
-		        {% endif %}
+		       {% if user.active %}
+		       		<input type="checkbox" name="active" id="act-{{ user.uid }}" checked> 
+		       {% else %}
+		       		<input type="checkbox" name="inactive" id="act-{{ user.uid }}"> 
+		       {% endif %}
+	        </td>
+
+	        <td scope="row">
+	          <input id="name" name="name" value="{{ user.name }}" size="13"></input>
+	        </td>
+
+	        <td scope="row">
+				{% for role in roles %}
+					<label>
+					{% if role in user.roles %}
+					<input type="checkbox" name="{{ role.name }}" id="{{ role.name }}" checked> {{role.name}}
+					{% else %}
+					<input type="checkbox" name="{{ role.name }}" id="{{ role.name }}" > {{role.name}}
+					{% endif %}
+					</label>
+				{% endfor %}
 	        </td>
 	        <td scope="row">
-	          <a href="{{ user.url }}">{{ user.name }}</a>
+	        	<input id="UID" name="UID" value="{{ user.id }}" size="7"></input>
 	        </td>
-	        <td class="msg_field">
-				{% if user.msg == "" %}
-					<a href="#" data-msg id="{{ user.id }}" name='{{ user.id }}' data-toggle="modal" data-target="#myModal" style="color: #000000; text-decoration: none;"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
-				{% else %}
-					<a href="#" data-msg id="{{ user.id }}"  data-toggle="modal" data-target="#myModal" name='{{ user.id }}' style="color: #000000; text-decoration: none;">{{ user.msg }}</a>
-				{% endif %}
+	         <td scope="row">
+	        	<input id="URL" name="URL" value="{{ user.url }}" size="10"></input>
 	        </td>
-	        {% if admin %}
-		        <td>
-		          <button type="button" class="btn btn-default" onclick="location.href='{{ url_for('admin.edit_user', uid=user.id) }}'"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></button>
-		        </td>
-	        {% endif %}
+	        <td>
+	           <button type="submit" class="btn btn-primary">Save</button>
+	        </td>
+	       
 	      </tr>
 	      {% endfor %}
 	    </tbody>
-
-	    <!-- Table for Department and Guests -->
-		{% else %}
-	  	<tbody>
-			{% for user in users %}
-				{% if not admin and not staff %}
-			      <tr>
-			        <td scope="row">
-				      	  {% if user.is_in() %}
-				          <button type="button" class="btn btn-success inout" id="{{ user.id }}">In</button>
-				          {% else %}
-				          <button type="button" class="btn btn-danger inout" id="{{ user.id }}">Out</button>
-				          {% endif %}
-			        </td>
-			        <td scope="row">
-			          <a href="{{ user.url }}">{{ user.name }}</a>
-			        </td>
-			        <td>
-		          	<p id="{{ user.id }}">{% if dept %}{{ user.msg }}{% endif %}</p>
-			        </td>
-			      </tr>
-				{% endif %}
-			{% endfor %}
-	    </tbody>
-
-    {% endif %}
   </table>
 
   	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">

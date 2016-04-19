@@ -54,10 +54,10 @@ def index():
 @admin.route("/admin_board")
 @requires_roles("admin")
 def render_board():
-	users = user_query("staff")
+	users = User.query.all()
+	form = UserForm()
 	return render_template('admin/admin_board.html', title=app.config['BASE_HTML_TITLE'], 
-		date=date.today().strftime('%a %m/%d/%Y'), users=users, admin = session['admin'], 
-		staff= session['staff'],role_switch = True, dept=session['dept'] )
+		date=date.today().strftime('%a %m/%d/%Y'), users=users, roles=Role.query.all(), form=form)
 
 @admin.route('/role_select')
 @login_required
@@ -111,28 +111,27 @@ def add_user():
 @login_required
 def edit_user(uid):
     user = User.query.get(uid)
-    form = UserForm(first_name=user.first_name, last_name=user.last_name, URL=user.url, UID=user.id)
-    roles = user.roles
+    # form = UserForm(first_name=user.first_name, last_name=user.last_name, URL=user.url, UID=user.id)
+    # roles = user.roles
 
-    if form.validate_on_submit():
-        user.id = request.form['UID']
-        user.first_name = request.form['first_name']
-        user.last_name = request.form['last_name']
-        user.url = request.form['URL']
-        user.name = user.first_name + ' ' + user.last_name
-        
-        for role in Role.query.all():
-            # Role is checked
-            if request.form.get(role.name):
-                if role not in user.roles:
-                    user.roles.append(get_role(role.name))
-            # Role is unchecked
-            else:
-                if role in user.roles:
-                    user.roles.remove(role)
-        db.session.commit()
-        return redirect(url_for('admin.render_board'))
+    # if form.validate_on_submit():
+    user.id = request.form['UID']
+    user.name = request.form['name']
+    user.url = request.form['URL']
+    
+    
+    for role in Role.query.all():
+        # Role is checked
+        if request.form.get(role.name):
+            if role not in user.roles:
+                user.roles.append(get_role(role.name))
+        # Role is unchecked
+        else:
+            if role in user.roles:
+                user.roles.remove(role)
+    db.session.commit()
+    return redirect(url_for('admin.render_board'))
 
-    flash_errors(form)
-    return render_template('admin/edit_add_user.html', title=app.config['BASE_HTML_TITLE'],
-        edit_mode=True, add_mode=False, user=user, user_roles = roles, roles=Role.query.all(), form=form)
+    # flash_errors(form)
+    # return render_template('admin/edit_add_user.html', title=app.config['BASE_HTML_TITLE'],
+    #     edit_mode=True, add_mode=False, user=user, user_roles = roles, roles=Role.query.all(), form=form)

@@ -19,25 +19,27 @@
     {% if staff %}
 	    <tbody>
 	      {% for user in users %}
-	      <tr>
-	        <td scope="row">
-		        {% if user.is_in() %}
-		          <button type="button" data-inout class="btn btn-success inout" name="in" id="btn-{{ user.id }}">In</button>
-		        {% else %}
-		          <button type="button" data-inout class="btn btn-danger inout" name="out" id="btn-{{ user.id }}">Out</button>
-		        {% endif %}
-	        </td>
-	        <td scope="row">
-	          <a href="{{ user.url }}">{{ user.name }}</a>
-	        </td>
-	        <td class="msg_field">
-				{% if user.msg == "" %}
-					<a data-msg id="msg-{{ user.id }}"  data-mesg='{{ user.msg }}'><span class="glyphicon glyphicon-pencil" aria-hidden="true" style="color: #000000; text-decoration: none;" ></span></a>
-				{% else %}
-					<a data-msg id="msg-{{ user.id }}"   data-mesg='{{ user.msg }}' style="color: #000000; text-decoration: none;">{{ user.msg }}</a>
-				{% endif %}
-	        </td>
-	      </tr>
+		      {% if user.active %}
+		      <tr>
+		        <td scope="row">
+			        {% if user.is_in() %}
+			          <button type="button" data-inout class="btn btn-success inout" name="in" id="btn-{{ user.id }}">In</button>
+			        {% else %}
+			          <button type="button" data-inout class="btn btn-danger inout" name="out" id="btn-{{ user.id }}">Out</button>
+			        {% endif %}
+		        </td>
+		        <td scope="row">
+		          <a href="{{ user.url }}">{{ user.name }}</a>
+		        </td>
+		        <td class="msg_field">
+					{% if user.msg == "" %}
+						<a data-msg id="msg-{{ user.id }}"  data-mesg='{{ user.msg }}'><span class="glyphicon glyphicon-pencil" aria-hidden="true" style="color: #000000; text-decoration: none;" ></span></a>
+					{% else %}
+						<a data-msg id="msg-{{ user.id }}"   data-mesg='{{ user.msg }}' style="color: #000000; text-decoration: none;">{{ user.msg }}</a>
+					{% endif %}
+		        </td>
+		      </tr>
+		      {% endif %}
 	      {% endfor %}
 	    </tbody>
 
