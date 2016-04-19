@@ -16,7 +16,9 @@
 	<style>
 		body { padding-top: 70px; }
 		.table { font-size: 120%; }
+    .date { text-align: center; }
 		.inout { width: 50px; }
+    .clickable { cursor: pointer; }
 	</style>
 </head>
 
@@ -41,7 +43,7 @@
 			{% if not session.logged_in %}
 				<li><a href="{{ url_for('login') }}">CalNet Login</a></li>
 			{% else %}
-				
+
 				{% if admin %}
 					<li><a href="{{ url_for('render_admin') }}">Admin</a></li>
 				{% endif%}
