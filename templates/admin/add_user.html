@@ -1,0 +1,43 @@
+{% extends "admin/admin_base.html" %}
+{% block body %}
+<div class='container'>
+
+    <form action="{{ url_for('admin.add_user') }}" method=post >
+
+      <fieldset class="form-group">
+        <label for"fn">First Name:</label>
+        <p>{{form.first_name}}</p>
+      </fieldset>
+
+      <fieldset class="form-group">
+        <label for"ln">Last Name:</label>
+       <p> {{form.last_name}}</p>
+      </fieldset>
+
+      <fieldset class="form-group">
+        <label for"uid_form">UID:</label>
+        <p>{{form.UID}} </p>
+      </fieldset>
+
+      <fieldset class="form-group">
+        <label for"url_form">URL:</label>
+        <p>{{form.URL}}</p>
+      </fieldset>
+
+      <div class="checkbox">
+        {% for role in roles %}
+          <label><input type="checkbox" name="{{ role.name }}" id="{{ role.name }}"> {{role.name}}</label>
+        {% endfor %}
+      </div>
+
+      {{ form.csrf_token }}
+      <div class="container row">
+        <button type="submit" class="btn btn-primary">Add User</button>
+        <button type="button" onclick="location.href='{{ url_for('admin.render_board') }}'" class="btn btn-default">Cancel</button>
+      </div>
+        
+  </form>
+</div>
+{% endblock %}
+
+

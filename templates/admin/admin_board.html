@@ -6,55 +6,55 @@
   	<!-- Table Header -->
     <thead>
       <tr>
-        <th colspan="4" style="text-align: center;">{{ date }}</th>
-      </tr>
-      <tr>
         <th scope="col"> Active </th>
-        <th scope="col"> First Name </th>
+        <th scope="col"> Name </th>
         <th scope="col"> Role </th>
         <th scope="col"> UID </th>
         <th scope="col"> URL </th>
-        
+        <th scope="col"> Save </th>
+        <th scope="col"> Delete </th>
       </tr>
     </thead>
 
-	<!-- Table for Admins and Staff -->
 	    <tbody>
 	      {% for user in users %}
 	      <tr>
-	      	<form action="{{ url_for('admin.edit_user', uid=user.id) }}" method=post>
-	        
+	    
 	        <td scope="row">
 		       {% if user.active %}
-		       		<input type="checkbox" name="active" id="act-{{ user.uid }}" checked> 
+		       		<input type="checkbox"  name="act-{{ user.id }}" checked> 
 		       {% else %}
-		       		<input type="checkbox" name="inactive" id="act-{{ user.uid }}"> 
+		       		<input type="checkbox"  name="act-{{ user.id }}"> 
 		       {% endif %}
 	        </td>
 
 	        <td scope="row">
-	          <input id="name" name="name" value="{{ user.name }}" size="13"></input>
+	          <input  id="name-{{user.id}}" value="{{ user.name }}" size="13"></input>
 	        </td>
 
 	        <td scope="row">
 				{% for role in roles %}
 					<label>
 					{% if role in user.roles %}
-					<input type="checkbox" name="{{ role.name }}" id="{{ role.name }}" checked> {{role.name}}
+					<input type="checkbox" id="{{ role.name }}" name="{{ role.name }}-{{user.id}}" checked> {{role.name}}
 					{% else %}
-					<input type="checkbox" name="{{ role.name }}" id="{{ role.name }}" > {{role.name}}
+					<input type="checkbox" id="{{ role.name }}" name="{{ role.name }}-{{user.id}}" > {{role.name}}
 					{% endif %}
 					</label>
 				{% endfor %}
 	        </td>
+
 	        <td scope="row">
-	        	<input id="UID" name="UID" value="{{ user.id }}" size="7"></input>
+	        	<input id="UID" name="UID" value="{{ user.id }}" size="7" readonly></input>
 	        </td>
 	         <td scope="row">
-	        	<input id="URL" name="URL" value="{{ user.url }}" size="10"></input>
+	        	<input id="URL-{{user.id}}" name="URL" value="{{ user.url }}" size="10"></input>
 	        </td>
 	        <td>
-	           <button type="submit" class="btn btn-primary">Save</button>
+	           <a data-submit class="btn btn-primary" id="{{user.id}}">Save</a>
+	        </td>
+	        <td>
+	           <a data-delete class="btn btn-danger" id="{{user.id}}"><span class="glyphicon glyphicon-trash" aria-hidden="true"></a>
 	        </td>
 	       
 	      </tr>
@@ -62,121 +62,78 @@
 	    </tbody>
   </table>
 
-  	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
 	  <div class="modal-dialog" role="document">
 	    <div class="modal-content">
 	      <div class="modal-header">
 	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-	        <h4 class="modal-title" id="myModalLabel">Message</h4>
+	        <h4 class="modal-title" id="myModalLabel">Delete User</h4>
 	      </div>
 	      <div class="modal-body">
-	        <textarea rows="2" type="text" class="msg_input form-control" size=40 id="modal_text"></textarea>
+	        <p rows="2" type="text" class="msg_input form-control" size=40 id="modal_text"></p>
 	      </div>
 	      <div class="modal-footer">
-	        <button type="button" class="btn btn-default" id="modal_clear_btn">Clear</button>
-	        <button type="button" class="btn btn-primary" id="modal_save_btn">Save</button>
+	         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	        <button type="button" class="btn btn-danger" id="modal_delete_btn">DELETE</button>
 	      </div>
 	    </div>
 	  </div>
 	</div>
-</div>
-
 <script type="text/javascript">
 
-$('#myModal').on('show.bs.modal', function (event) {
-	var button = $(event.relatedTarget);
-	var uid = button.attr("id"); 
-	var name = button.attr('name');
-	var msg = button.text();
+$('tbody').on('click', '[data-submit]', function(){
+	var $el = $(this);
+	var uid = $el.attr('id')
+	var dict = [];
+	dict.push({
+		uid: uid,
+		active:  $('input[name=act-' + uid +']:checked').length > 0,
+		name: document.getElementById("name-" + uid).value,
+		URL: document.getElementById("URL-" + uid).value
+    });
 
-	var modal = $(this)
-	modal.find('.modal-body textarea').val(msg)
+	var roles = []
+	roles.push({
+		// add more here when want to add more roles. 
+		admin: $('input[name=admin-' + uid +']:checked').length > 0,
+		staff: $('input[name=staff-' + uid +']:checked').length > 0
+	});
 
-	var save = function(clear){
-		if (clear) {
-			new_msg = "";
-		} else {
-	  		new_msg = document.getElementById('modal_text').value;
-		}
-	    // var $p = $('<p data-msg id=' + uid + ' name='+ name + ' />').text( new_msg );
-	    // $el.replaceWith($p)
+	var edit_user = function(){
+		$.getJSON($SCRIPT_ROOT + '/admin/edit_user', {
+				dict: JSON.stringify(dict),
+				roles: JSON.stringify(roles)
+			}, function(data){} );	
+		return false;
+	};
 
-	    var jsonArr = [];
-	    jsonArr.push({
-			uid: uid,
-			msg: new_msg
-	    });
+	edit_user();
+});
 
-		$.getJSON($SCRIPT_ROOT + '/message_submit', {
-			new_msgs: JSON.stringify(jsonArr)
+$(document).on('click', '[data-delete]', function(){
+	var $el = $(this);
+	var uid = $el.attr('id');
+	
+	$('#myModal').modal('show');
+	$("#modal_text").text("ARE YOU SURE YOU WANT TO DELETE USER: " + uid);
+
+	var delete_user = function(){
+
+		$.getJSON($SCRIPT_ROOT + '/admin/delete_user', {
+			uid: uid
 			}, function(data) {
 				location.reload()
 			}
 		);
 	};
 
-	$("#modal_save_btn").click(function() {
-		save(false);
+	$("#modal_delete_btn").click(function() {
+		delete_user();
 		$("#myModal").modal("toggle");
 	});
-
-	$("#modal_clear_btn").click(function() {
-		save(true);
-		$("#myModal").modal("toggle");
-	});
-
-})
-
-
-$('body').on('click', '[data-inout]', function(){
-	var $el = $(this);
-	var uid = $el.attr('id');
-	var state = $el.attr('name');
-
-	var toggle_inout = function(){
-		var $out_btn = $('<button type="button" data-inout class="btn inout btn-danger" name="out" id="' + uid + '">Out</button>')
-		var $in_btn = $('<button type="button" data-inout class="btn inout btn-success" name="in" id="' + uid + '">In</button>')
-		$.getJSON($SCRIPT_ROOT + '/inOutToggle', {
-				uid: uid
-			}, function(data) {
-				if (data.state) {
-					$el.replaceWith( $in_btn );
-				} else {
-					$el.replaceWith( $out_btn );
-				}
-			}
-		);
-	return false;
-	};
-	toggle_inout();
 });
 
-var toggle_inout_button = function () {
-  var button = document.getElementById('refresh_btn');
-  button.innerHTML = 'Save';
-  button.setAttribute('onclick', 'submit_all_msgs()');
-  saved = false;
-};
 
-var toggle_inout = function(uid) {
-  var jsonArr = [];
-
-  $('.msg_input').each( function(i, obj) {
-    var uid1 = obj.getAttribute('name');
-    jsonArr.push({
-      uid: uid1,
-      msg: $('textarea[id='.concat(uid1,']')).val()
-    })
-  });
-
-  $.getJSON($SCRIPT_ROOT + '/message_submit', {
-    new_msgs: JSON.stringify(jsonArr)
-  }, function(data) {
-    location.reload()
-  });
-
-  return false;
-};
 
 var blurred = false;
 window.onblur = function() { blurred = true; };

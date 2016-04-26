@@ -47,7 +47,6 @@ def unauthorized_callback():
 @app.route('/logout')
 # @login_required
 def logout():
-    # flash('You were logged out.', 'success')
     logout_user()
     session['logged_in'] = False
     session['admin'] = False
@@ -178,6 +177,31 @@ def check_change():
 @login_required
 def render_admin():
     return redirect(url_for("admin.index"))
+
+
+##### Feature Deprecated #####
+# @app.route('/role_select')
+# @login_required
+# def render_role_select():
+#     return render_template('role_select.html', title=app.config['BASE_HTML_TITLE'])
+
+# @app.route('/role_select', methods=['POST'])
+# @login_required
+# def role_select():
+#     selected = request.form['selected']
+#     session['dept'] = True
+#     session['staff'] = False
+#     if (selected == 'Admin'):
+#         session['admin'] = True
+#     elif (selected == 'Staff'):
+#         session['admin'] = False
+#         session['staff'] = True
+#     elif (selected == 'Department'):
+#         session['admin'] = False
+#     else:
+#         session['dept'] = False
+#         session['admin'] = False
+#     return redirect(url_for('render_board'))
 
 
 if __name__ == '__main__':

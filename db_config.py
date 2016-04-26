@@ -25,7 +25,7 @@ class User(db.Model, UserMixin):
     last_name = db.Column(db.String(100), nullable=True, server_default='')
     active = db.Column(db.Boolean(), nullable=False, server_default='')
 
-    roles = db.relationship('Role', secondary='user_roles',
+    roles = db.relationship('Role', secondary='user_roles', passive_deletes=True,
                                  backref=db.backref('roles',lazy='dynamic'))
 
     def is_in(self):
@@ -35,7 +35,7 @@ class Role(db.Model):
     __tablename__ = 'role'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(50), unique=True)
-    users = db.relationship('User', secondary='user_roles', lazy ='dynamic',
+    users = db.relationship('User', secondary='user_roles', lazy ='dynamic',passive_deletes=True,
                                backref=db.backref('users', lazy='dynamic'))
 
 # Define the UserRoles data model

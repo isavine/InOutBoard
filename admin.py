@@ -7,7 +7,7 @@ from datetime import date
 from flask.ext.login import LoginManager, login_user, UserMixin, login_required, logout_user, \
       fresh_login_required
 from flask_wtf import Form
-from wtforms import StringField, PasswordField, BooleanField, IntegerField
+from wtforms import StringField, PasswordField, BooleanField, IntegerField, SelectMultipleField
 from wtforms.validators import DataRequired, Email, URL
 from functools import wraps
 
@@ -44,7 +44,6 @@ def unauthorized_entry():
 @admin.route("/")
 @requires_roles("admin")
 def index():
-
 	session['dept'] = True
 	session['staff'] = True
 	session['admin'] = True
@@ -59,31 +58,9 @@ def render_board():
 	return render_template('admin/admin_board.html', title=app.config['BASE_HTML_TITLE'], 
 		date=date.today().strftime('%a %m/%d/%Y'), users=users, roles=Role.query.all(), form=form)
 
-@admin.route('/role_select')
-@login_required
-def render_role_select():
-    return render_template('admin/role_select.html', title=app.config['BASE_HTML_TITLE'])
-
-
-@admin.route('/role_select', methods=['POST'])
-@login_required
-def role_select():
-    selected = request.form['selected']
-    session['dept'] = True
-    session['staff'] = False
-    if (selected == 'Admin'):
-        session['admin'] = True
-    elif (selected == 'Staff'):
-        session['admin'] = False
-        session['staff'] = True
-    elif (selected == 'Department'):
-        session['admin'] = False
-    else:
-        session['dept'] = False
-        session['admin'] = False
-    return redirect(url_for('admin.render_board'))
 
 @admin.route('/add_user', methods=['POST', 'GET'])
+@requires_roles("admin")
 @login_required
 def add_user():
     form = UserForm()
@@ -103,34 +80,61 @@ def add_user():
         return redirect(url_for('admin.render_board'))
 
     flash_errors(form)
-    return render_template('admin/edit_add_user.html', title=app.config['BASE_HTML_TITLE'],
+    return render_template('admin/add_user.html', title=app.config['BASE_HTML_TITLE'],
         edit_mode=False, add_mode=True, roles=Role.query.all(), form=form)
 
 
-@admin.route('/edit_user/<uid>', methods=['POST', 'GET'])
+@admin.route('/edit_user', methods=['POST', 'GET'])
+@requires_roles("admin")
 @login_required
-def edit_user(uid):
-    user = User.query.get(uid)
-    # form = UserForm(first_name=user.first_name, last_name=user.last_name, URL=user.url, UID=user.id)
-    # roles = user.roles
+def edit_user():
+	arg = request.args.get('dict')
+	dic = json.loads(arg)[0]
+	arg1 = request.args.get('roles')
+	roles_checked = json.loads(arg1)[0]
+	user = User.query.get(dic['uid'])
 
-    # if form.validate_on_submit():
-    user.id = request.form['UID']
-    user.name = request.form['name']
-    user.url = request.form['URL']
+	user.name = dic['name']
+	user.url = dic['URL']
+	user.active = dic['active']
+
+	for role in Role.query.all():
+		# Role is checked
+		if roles_checked[role.name]:
+			if role not in user.roles:
+				user.roles.append(get_role(role.name))
+		# Role is unchecked
+		else:
+			if role in user.roles:
+				user.roles.remove(role)
+	db.session.commit()		
+	return jsonify()
+
+@admin.route('/delete_user', methods=['POST', 'GET'])
+@requires_roles("admin")
+@login_required
+def delete_user():
+    uid = request.args.get('uid')
+    user = User.query.get(uid)
+    db.session.delete(user)
+    db.session.commit()     
+    return jsonify()
+
+    # user.url = request.form['URL']
     
     
-    for role in Role.query.all():
-        # Role is checked
-        if request.form.get(role.name):
-            if role not in user.roles:
-                user.roles.append(get_role(role.name))
-        # Role is unchecked
-        else:
-            if role in user.roles:
-                user.roles.remove(role)
-    db.session.commit()
-    return redirect(url_for('admin.render_board'))
+    # for role in Role.query.all():
+    #     # Role is checked
+    #     if request.form.get(role.name):
+    #         if role not in user.roles:
+    #             user.roles.append(get_role(role.name))
+    #     # Role is unchecked
+    #     else:
+    #         if role in user.roles:
+    #             user.roles.remove(role)
+    # db.session.commit()
+    # return redirect(url_for('admin.render_board'))
+    
 
     # flash_errors(form)
     # return render_template('admin/edit_add_user.html', title=app.config['BASE_HTML_TITLE'],
