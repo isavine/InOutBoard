@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify, session, g, redirect, url_for, abort,
      render_template, flash, json
 from helpers import user_query, flash_errors, get_role
 from datetime import date
-from flask.ext.login import LoginManager, login_user, UserMixin, login_required, logout_user, \
+from flask_login import LoginManager, login_user, UserMixin, login_required, logout_user, \
       fresh_login_required
 from flask_wtf import Form
 from wtforms import StringField, PasswordField, BooleanField, IntegerField, SelectMultipleField
@@ -18,7 +18,7 @@ class UserForm(Form):
     last_name = StringField('Last', validators=[DataRequired()])
     UID = IntegerField("UID", validators=[DataRequired()])
     URL = StringField("URL", validators=[DataRequired(), URL()])
-    
+
 # http://flask.pocoo.org/snippets/98/
 def requires_roles(*roles):
     def wrapper(f):
@@ -55,7 +55,7 @@ def index():
 def render_board():
 	users = User.query.all()
 	form = UserForm()
-	return render_template('admin/admin_board.html', title=app.config['BASE_HTML_TITLE'], 
+	return render_template('admin/admin_board.html', title=app.config['BASE_HTML_TITLE'],
 		date=date.today().strftime('%a %m/%d/%Y'), users=users, roles=Role.query.all(), form=form)
 
 
@@ -107,7 +107,7 @@ def edit_user():
 		else:
 			if role in user.roles:
 				user.roles.remove(role)
-	db.session.commit()		
+	db.session.commit()
 	return jsonify()
 
 @admin.route('/delete_user', methods=['POST', 'GET'])
@@ -117,12 +117,12 @@ def delete_user():
     uid = request.args.get('uid')
     user = User.query.get(uid)
     db.session.delete(user)
-    db.session.commit()     
+    db.session.commit()
     return jsonify()
 
     # user.url = request.form['URL']
-    
-    
+
+
     # for role in Role.query.all():
     #     # Role is checked
     #     if request.form.get(role.name):
@@ -134,7 +134,7 @@ def delete_user():
     #             user.roles.remove(role)
     # db.session.commit()
     # return redirect(url_for('admin.render_board'))
-    
+
 
     # flash_errors(form)
     # return render_template('admin/edit_add_user.html', title=app.config['BASE_HTML_TITLE'],

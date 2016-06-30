@@ -4,8 +4,8 @@ from flask import Flask, request, jsonify, session, g, redirect, url_for, abort,
      render_template, flash, json
 from ldap import initialize, SCOPE_SUBTREE
 from urllib import urlencode, urlopen
-from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.login import LoginManager, login_user, UserMixin, login_required, logout_user, \
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, login_user, UserMixin, login_required, logout_user, \
       fresh_login_required
 from datetime import date
 from flask_wtf import Form
@@ -82,11 +82,11 @@ def validate():
         ldap_obj.simple_bind_s()
         result = ldap_obj.search_s(app.config['LDAP_BASE'], SCOPE_SUBTREE, '(uid=%s)' % uid)
         if result:
-            print(result)
+            print('User logged in: %s' % result[0][1]['displayName'][0].title())
             session['UID'] = uid
             name = result[0][1]['displayName'][0].title()
             session['name'] = name
-            print(session['UID'])
+            print('User ID: %s' % session['UID'])
             user = User.query.get(session['UID'])
             if user:
                 flash('You were logged in as %s' % name, 'success')
@@ -106,7 +106,7 @@ def user_query(role):
 @app.route('/who')
 @login_required
 def who():
-    roles = User.query.get(session['UID']).roles 
+    roles = User.query.get(session['UID']).roles
     user_type = [role.name for role in roles]
     session['dept'] = True
     session['role_switch'] = False

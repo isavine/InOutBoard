@@ -2,8 +2,8 @@
 #import os
 #sys.path.append(os.path.abspath('../InOutBoard/instance'))
 from flask import Flask
-from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.login import UserMixin
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
 
 
 app = Flask(__name__)

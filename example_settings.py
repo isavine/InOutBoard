@@ -12,5 +12,5 @@ SERVER_PORT = 5000
 BASE_HTML_TITLE = 'Staff In/Out Board'
 ADMIN_USERS = [
   dict(id='12345678', name='John Doe', first_name='John', last_name='Doe',
-    url='http://johndoe.me/')
+    url='http://johndoe.me/', active=True)
 ]
