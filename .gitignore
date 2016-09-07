@@ -2,5 +2,6 @@
 *.db
 *.out
 *.err
+*.tmp
 instance
 venv
