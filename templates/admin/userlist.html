@@ -1,0 +1,144 @@
+{% extends "admin/base.html" %}
+{% block body %}
+
+<div class=container>
+  <table class="table table-condensed table-striped">
+  	<!-- Table Header -->
+    <thead>
+      <tr>
+        <th scope="col"> Active </th>
+        <th scope="col"> Name </th>
+        <th scope="col"> Role </th>
+        <th scope="col"> UID </th>
+        <th scope="col"> URL </th>
+        <th scope="col"> Save </th>
+        <th scope="col"> Delete </th>
+      </tr>
+    </thead>
+
+	    <tbody>
+	      {% for user in users %}
+	      <tr>
+
+	        <td scope="row">
+		       {% if user.active %}
+		       		<input type="checkbox"  name="act-{{ user.id }}" checked>
+		       {% else %}
+		       		<input type="checkbox"  name="act-{{ user.id }}">
+		       {% endif %}
+	        </td>
+
+	        <td scope="row">
+	          <input  id="name-{{user.id}}" value="{{ user.name }}" size="13"></input>
+	        </td>
+
+	        <td scope="row">
+				{% for role in roles %}
+					<label>
+					{% if role in user.roles %}
+					<input type="checkbox" id="{{ role.name }}" name="{{ role.name }}-{{user.id}}" checked> {{role.name}}
+					{% else %}
+					<input type="checkbox" id="{{ role.name }}" name="{{ role.name }}-{{user.id}}" > {{role.name}}
+					{% endif %}
+					</label>
+				{% endfor %}
+	        </td>
+
+	        <td scope="row">
+	        	<input id="UID" name="UID" value="{{ user.id }}" size="7" readonly></input>
+	        </td>
+	         <td scope="row">
+	        	<input id="URL-{{user.id}}" name="URL" value="{{ user.url }}" size="10"></input>
+	        </td>
+	        <td>
+	           <a data-submit class="btn btn-primary" id="{{user.id}}">Save</a>
+	        </td>
+	        <td>
+	           <a data-delete class="btn btn-danger" id="{{user.id}}"><span class="glyphicon glyphicon-trash" aria-hidden="true"></a>
+	        </td>
+
+	      </tr>
+	      {% endfor %}
+	    </tbody>
+  </table>
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="myModalLabel">Delete User</h4>
+	      </div>
+	      <div class="modal-body">
+	        <p rows="2" type="text" class="msg_input form-control" size=40 id="modal_text"></p>
+	      </div>
+	      <div class="modal-footer">
+	         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	        <button type="button" class="btn btn-danger" id="modal_delete_btn">DELETE</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+<script type="text/javascript">
+
+$('tbody').on('click', '[data-submit]', function(){
+	var $el = $(this);
+	var uid = $el.attr('id')
+	var dict = [];
+	dict.push({
+		uid: uid,
+		active:  $('input[name=act-' + uid +']:checked').length > 0,
+		name: document.getElementById("name-" + uid).value,
+		URL: document.getElementById("URL-" + uid).value
+    });
+
+	var roles = []
+	roles.push({
+		// add more here when want to add more roles.
+		admin: $('input[name=admin-' + uid +']:checked').length > 0,
+		staff: $('input[name=staff-' + uid +']:checked').length > 0
+	});
+
+	var edit_user = function(){
+		$.getJSON($SCRIPT_ROOT + '/admin/edit_user', {
+				dict: JSON.stringify(dict),
+				roles: JSON.stringify(roles)
+			}, function(data){} );
+		return false;
+	};
+
+	edit_user();
+});
+
+$(document).on('click', '[data-delete]', function(){
+	var $el = $(this);
+	var uid = $el.attr('id');
+
+	$('#myModal').modal('show');
+	$("#modal_text").text("ARE YOU SURE YOU WANT TO DELETE USER: " + uid);
+
+	var delete_user = function(){
+
+		$.getJSON($SCRIPT_ROOT + '/admin/delete_user', {
+			uid: uid
+			}, function(data) {
+				location.reload()
+			}
+		);
+	};
+
+	$("#modal_delete_btn").click(function() {
+		delete_user();
+		$("#myModal").modal("toggle");
+	});
+});
+
+
+
+var blurred = false;
+window.onblur = function() { blurred = true; };
+window.onfocus = function() {
+  blurred && (location.reload());
+};
+</script>
+{% endblock %}

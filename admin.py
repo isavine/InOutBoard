@@ -13,11 +13,13 @@ from functools import wraps
 
 admin = Blueprint("admin", __name__, template_folder = "templates/admin")
 
+
 class UserForm(Form):
     first_name = StringField('First', validators=[DataRequired()])
     last_name = StringField('Last', validators=[DataRequired()])
     UID = IntegerField("UID", validators=[DataRequired()])
     URL = StringField("URL", validators=[DataRequired(), URL()])
+
 
 # http://flask.pocoo.org/snippets/98/
 def requires_roles(*roles):
@@ -30,6 +32,7 @@ def requires_roles(*roles):
         return wrapped
     return wrapper
 
+
 def has_user_role(roles):
     user = User.query.get(session['UID'])
     for role in user.roles:
@@ -37,32 +40,36 @@ def has_user_role(roles):
             return True
     return False
 
+
 def unauthorized_entry():
     flash('You are not allowed to see this page', 'warning')
     return render_template('base.html', title=app.config['BASE_HTML_TITLE'])
 
+
 @admin.route("/")
+@login_required
 @requires_roles("admin")
 def index():
-	session['dept'] = True
-	session['staff'] = True
-	session['admin'] = True
-	return redirect(url_for("admin.render_board"))
+    session['dept'] = True
+    session['staff'] = True
+    session['admin'] = True
+    return redirect(url_for("admin.userlist"))
 
 
-@admin.route("/admin_board")
-@requires_roles("admin")
-def render_board():
-	users = User.query.all()
-	form = UserForm()
-	return render_template('admin/admin_board.html', title=app.config['BASE_HTML_TITLE'],
-		date=date.today().strftime('%a %m/%d/%Y'), users=users, roles=Role.query.all(), form=form)
-
-
-@admin.route('/add_user', methods=['POST', 'GET'])
-@requires_roles("admin")
+@admin.route("/userlist")
 @login_required
-def add_user():
+@requires_roles("admin")
+def userlist():
+    users = User.query.all()
+    form = UserForm()
+    return render_template('admin/userlist.html', title=app.config['BASE_HTML_TITLE'],
+        date=date.today().strftime('%a %m/%d/%Y'), users=users, roles=Role.query.all(), form=form)
+
+
+@admin.route('/adduser', methods=['POST', 'GET'])
+@login_required
+@requires_roles("admin")
+def adduser():
     form = UserForm()
 
     if form.validate_on_submit():
@@ -77,42 +84,42 @@ def add_user():
 
         db.session.add(new_user)
         db.session.commit()
-        return redirect(url_for('admin.render_board'))
+        return redirect(url_for('admin.userlist'))
 
     flash_errors(form)
-    return render_template('admin/add_user.html', title=app.config['BASE_HTML_TITLE'],
+    return render_template('admin/adduser.html', title=app.config['BASE_HTML_TITLE'],
         edit_mode=False, add_mode=True, roles=Role.query.all(), form=form)
 
 
 @admin.route('/edit_user', methods=['POST', 'GET'])
-@requires_roles("admin")
 @login_required
+@requires_roles("admin")
 def edit_user():
-	arg = request.args.get('dict')
-	dic = json.loads(arg)[0]
-	arg1 = request.args.get('roles')
-	roles_checked = json.loads(arg1)[0]
-	user = User.query.get(dic['uid'])
+    arg = request.args.get('dict')
+    dic = json.loads(arg)[0]
+    arg1 = request.args.get('roles')
+    roles_checked = json.loads(arg1)[0]
+    user = User.query.get(dic['uid'])
 
-	user.name = dic['name']
-	user.url = dic['URL']
-	user.active = dic['active']
+    user.name = dic['name']
+    user.url = dic['URL']
+    user.active = dic['active']
 
-	for role in Role.query.all():
-		# Role is checked
-		if roles_checked[role.name]:
-			if role not in user.roles:
-				user.roles.append(get_role(role.name))
-		# Role is unchecked
-		else:
-			if role in user.roles:
-				user.roles.remove(role)
-	db.session.commit()
-	return jsonify()
+    for role in Role.query.all():
+        # Role is checked
+        if roles_checked[role.name]:
+            if role not in user.roles:
+                user.roles.append(get_role(role.name))
+        # Role is unchecked
+        else:
+            if role in user.roles:
+                user.roles.remove(role)
+    db.session.commit()
+    return jsonify()
 
 @admin.route('/delete_user', methods=['POST', 'GET'])
-@requires_roles("admin")
 @login_required
+@requires_roles("admin")
 def delete_user():
     uid = request.args.get('uid')
     user = User.query.get(uid)
@@ -133,9 +140,9 @@ def delete_user():
     #         if role in user.roles:
     #             user.roles.remove(role)
     # db.session.commit()
-    # return redirect(url_for('admin.render_board'))
+    # return redirect(url_for('admin.userlist'))
 
 
     # flash_errors(form)
-    # return render_template('admin/edit_add_user.html', title=app.config['BASE_HTML_TITLE'],
+    # return render_template('admin/edituser.html', title=app.config['BASE_HTML_TITLE'],
     #     edit_mode=True, add_mode=False, user=user, user_roles = roles, roles=Role.query.all(), form=form)
