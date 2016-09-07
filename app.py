@@ -38,6 +38,14 @@ def make_session_permanent():
     return
 
 
+@app.after_request
+def add_header(response):
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
+
 @login_manager.unauthorized_handler
 def unauthorized_callback():
     flash('You are logged out. Please login.', 'warning')
@@ -52,6 +60,7 @@ def logout():
     session['admin'] = False
     session['staff'] = False
     return render_template('base.html', title=app.config['BASE_HTML_TITLE'])
+
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -132,6 +141,14 @@ def render_board():
         admin = session['admin'], staff= session['staff'],
         role_switch= session['role_switch'], dept=session['dept'])
 
+
+@app.route('/schedule')
+@login_required
+def render_schedule():
+    f = open('instance/schedule.json', 'r')
+    schedule = json.load(f)
+    f.close()
+    return render_template('schedule.html', rows = schedule)
 
 
 @app.route('/inOutToggle')
