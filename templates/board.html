@@ -2,160 +2,160 @@
 {% block body %}
 
 <div class=container>
-  <table class="table table-condensed table-striped">
-  	<!-- Table Header -->
+  <table class="table table-striped table-condensed">
+    <!-- Table Header -->
     <thead>
       <tr>
         <th colspan="4" class="date">{{ date }}</th>
       </tr>
       <tr>
-        <th scope="col"> In/Out </th>
-        <th scope="col"> Name </th>
-        <th scope="col"> Message </th>
+        <th> In/Out </th>
+        <th> Name </th>
+        <th> Message </th>
       </tr>
     </thead>
 
-	<!-- Table for Staff -->
+  <!-- Table for Staff -->
     {% if staff %}
-	    <tbody>
-	      {% for user in users %}
-		      {% if user.active %}
-		      <tr>
-		        <td scope="row">
-			        {% if user.is_in() %}
-			          <button type="button" data-inout class="btn btn-success inout" name="in" id="btn-{{ user.id }}">In</button>
-			        {% else %}
-			          <button type="button" data-inout class="btn btn-danger inout" name="out" id="btn-{{ user.id }}">Out</button>
-			        {% endif %}
-		        </td>
-		        <td scope="row">
-		          <a href="{{ user.url }}">{{ user.name }}</a>
-		        </td>
-		        <td class="msg_field" class="clickable">
-					{% if user.msg == "" %}
-						<p class="clickable" data-msg id="msg-{{ user.id }}"  data-mesg='{{ user.msg }}'><span class="glyphicon glyphicon-pencil" aria-hidden="true" style="color: #000000; text-decoration: none;" ></span></p>
-					{% else %}
-						<p class="clickable"  data-msg id="msg-{{ user.id }}" data-mesg='{{ user.msg }}' style="color: #000000; text-decoration: none;">{{ user.msg }}</p>
-					{% endif %}
-		        </td>
-		      </tr>
-		      {% endif %}
-	      {% endfor %}
-	    </tbody>
+      <tbody>
+        {% for user in users %}
+          {% if user.active %}
+          <tr>
+            <td>
+              {% if user.is_in() %}
+                <button type="button" data-inout class="btn btn-success inout" name="in" id="btn-{{ user.id }}">In</button>
+              {% else %}
+                <button type="button" data-inout class="btn btn-danger inout" name="out" id="btn-{{ user.id }}">Out</button>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{{ user.url }}">{{ user.name }}</a>
+            </td>
+            <td class="msg_field" class="clickable">
+          {% if user.msg == "" %}
+            <p class="clickable" data-msg id="msg-{{ user.id }}"  data-mesg='{{ user.msg }}'><span class="glyphicon glyphicon-pencil" aria-hidden="true" style="color: #000000; text-decoration: none;" ></span></p>
+          {% else %}
+            <p class="clickable"  data-msg id="msg-{{ user.id }}" data-mesg='{{ user.msg }}' style="color: #000000; text-decoration: none;">{{ user.msg }}</p>
+          {% endif %}
+            </td>
+          </tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
 
-	    <!-- Table for Department and Guests -->
-		{% else %}
-	  	<tbody>
-			{% for user in users %}
-				{% if not admin and not staff %}
-			      <tr>
-			        <td scope="row">
-				      	  {% if user.is_in() %}
-				          <button type="button" class="btn btn-success inout" id="btn-{{ user.id }}">In</button>
-				          {% else %}
-				          <button type="button" class="btn btn-danger inout" id="btn-{{ user.id }}">Out</button>
-				          {% endif %}
-			        </td>
-			        <td scope="row">
-			          <a href="{{ user.url }}">{{ user.name }}</a>
-			        </td>
-			        <td>
-		          	<p>{% if dept %}{{ user.msg }}{% endif %}</p>
-			        </td>
-			      </tr>
-				{% endif %}
-			{% endfor %}
-	    </tbody>
+      <!-- Table for Department and Guests -->
+    {% else %}
+      <tbody>
+      {% for user in users %}
+        {% if not admin and not staff %}
+            <tr>
+              <td>
+                  {% if user.is_in() %}
+                  <button type="button" class="btn btn-success inout" id="btn-{{ user.id }}">In</button>
+                  {% else %}
+                  <button type="button" class="btn btn-danger inout" id="btn-{{ user.id }}">Out</button>
+                  {% endif %}
+              </td>
+              <td>
+                <a href="{{ user.url }}">{{ user.name }}</a>
+              </td>
+              <td>
+                <p>{% if dept %}{{ user.msg }}{% endif %}</p>
+              </td>
+            </tr>
+        {% endif %}
+      {% endfor %}
+      </tbody>
 
     {% endif %}
   </table>
 
-  	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-	  <div class="modal-dialog" role="document">
-	    <div class="modal-content">
-	      <div class="modal-header">
-	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-	        <h4 class="modal-title" id="myModalLabel">Message</h4>
-	      </div>
-	      <div class="modal-body">
-	        <textarea rows="2" type="text" class="msg_input form-control" size=40 id="modal_text"></textarea>
-	      </div>
-	      <div class="modal-footer">
-	        <button type="button" class="btn btn-info" id="modal_clear_btn">Clear</button>
-	        <button type="button" class="btn btn-primary" id="modal_save_btn">Save</button>
-	      </div>
-	    </div>
-	  </div>
-	</div>
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="myModalLabel">Message</h4>
+        </div>
+        <div class="modal-body">
+          <textarea rows="2" type="text" class="msg_input form-control" size=40 id="modal_text"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-info" id="modal_clear_btn">Clear</button>
+          <button type="button" class="btn btn-primary" id="modal_save_btn">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script type="text/javascript">
 
 $(document).on('click', '[data-mesg]', function(){
-	var $el = $(this);
-	var msg_uid = $el.attr('id');
-	var msg = $el.attr('data-mesg');
-	var uid = msg_uid.slice(4);
+  var $el = $(this);
+  var msg_uid = $el.attr('id');
+  var msg = $el.attr('data-mesg');
+  var uid = msg_uid.slice(4);
 
-	$('#myModal').modal('show');
-	$("#modal_text").val(msg);
+  $('#myModal').modal('show');
+  $("#modal_text").val(msg);
 
-	var save = function(clear){
-		if (clear) {
-			new_msg = "";
-		} else {
-	  		new_msg = document.getElementById('modal_text').value;
-		}
+  var save = function(clear){
+    if (clear) {
+      new_msg = "";
+    } else {
+        new_msg = document.getElementById('modal_text').value;
+    }
 
-	  var jsonArr = [];
-	  jsonArr.push({
-			uid: uid,
-			msg: new_msg
-	  });
+    var jsonArr = [];
+    jsonArr.push({
+      uid: uid,
+      msg: new_msg
+    });
 
-		$.getJSON($SCRIPT_ROOT + '/message_submit', {
-			new_msgs: JSON.stringify(jsonArr)
-			}, function(data) {
-				location.reload()
-			}
-		);
-	};
+    $.getJSON($SCRIPT_ROOT + '/message_submit', {
+      new_msgs: JSON.stringify(jsonArr)
+      }, function(data) {
+        location.reload()
+      }
+    );
+  };
 
-	$("#modal_save_btn").click(function() {
-		save(false);
-		$("#myModal").modal("toggle");
-	});
+  $("#modal_save_btn").click(function() {
+    save(false);
+    $("#myModal").modal("toggle");
+  });
 
-	$("#modal_clear_btn").click(function() {
-		save(true);
-		$("#myModal").modal("toggle");
-	});
+  $("#modal_clear_btn").click(function() {
+    save(true);
+    $("#myModal").modal("toggle");
+  });
 
 });
 
 
 $(document).on('click', '[data-inout]', function(){
-	var $el = $(this);
-	var btn_uid = $el.attr('id');
-	var state = $el.attr('name');
+  var $el = $(this);
+  var btn_uid = $el.attr('id');
+  var state = $el.attr('name');
 
-	var uid = btn_uid.slice(4);
-	var toggle_inout = function(){
-		var $out_btn = $('<button type="button" data-inout class="btn inout btn-danger" name="out" id="btn-' + uid + '">Out</button>')
-		var $in_btn = $('<button type="button" data-inout class="btn inout btn-success" name="in" id="btn-' + uid + '">In</button>')
-		$.getJSON($SCRIPT_ROOT + '/inOutToggle', {
-				uid: uid
-			}, function(data) {
-				if (data.state) {
-					$el.replaceWith( $in_btn );
-				} else {
-					$el.replaceWith( $out_btn );
-				}
-			}
-		);
-	return false;
-	};
-	toggle_inout();
+  var uid = btn_uid.slice(4);
+  var toggle_inout = function(){
+    var $out_btn = $('<button type="button" data-inout class="btn inout btn-danger" name="out" id="btn-' + uid + '">Out</button>')
+    var $in_btn = $('<button type="button" data-inout class="btn inout btn-success" name="in" id="btn-' + uid + '">In</button>')
+    $.getJSON($SCRIPT_ROOT + '/inOutToggle', {
+        uid: uid
+      }, function(data) {
+        if (data.state) {
+          $el.replaceWith( $in_btn );
+        } else {
+          $el.replaceWith( $out_btn );
+        }
+      }
+    );
+  return false;
+  };
+  toggle_inout();
 });
 
 
