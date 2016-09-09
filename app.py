@@ -135,11 +135,11 @@ def who():
 @app.route('/board')
 @login_required
 def render_board():
-    users = user_query("staff")
-    return render_template('board.html', title=app.config['BASE_HTML_TITLE'],
-        date=date.today().strftime('%a %m/%d/%Y'), users=users,
-        admin = session['admin'], staff= session['staff'],
-        role_switch= session['role_switch'], dept=session['dept'])
+    board = user_query("staff")
+    return render_template('board.html', title = app.config['BASE_HTML_TITLE'],
+        date=date.today().strftime('%a %m/%d/%Y'), board = board,
+        admin = session['admin'], staff = session['staff'],
+        role_switch = session['role_switch'], dept = session['dept'])
 
 
 @app.route('/schedule')
@@ -148,7 +148,8 @@ def render_schedule():
     f = open('instance/schedule.json', 'r')
     schedule = json.load(f)
     f.close()
-    return render_template('schedule.html', rows = schedule)
+    return render_template('schedule.html', title=app.config['BASE_HTML_TITLE'],
+        schedule = schedule)
 
 
 @app.route('/inOutToggle')
