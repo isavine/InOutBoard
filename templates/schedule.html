@@ -11,12 +11,12 @@
       </tr>
     </thead>
     <tbody>
-      {% for d in rows %}
+      {% for user in schedule %}
         <tr>
-          <td>{{ d['Name'] }}</td>
-          <td>{{ d['Office'] }}</td>
-          <td>{{ d['Schedule'] }}</td>
-          <td>{{ d['Note'] }}</td>
+          <td>{{ user['Name'] }}</td>
+          <td>{{ user['Office'] }}</td>
+          <td>{{ user['Schedule'] }}</td>
+          <td>{{ user['Note'] }}</td>
         </tr>
       {% endfor %}
     </tbody>

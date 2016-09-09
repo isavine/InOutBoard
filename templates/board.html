@@ -18,7 +18,7 @@
   <!-- Table for Staff -->
     {% if staff %}
       <tbody>
-        {% for user in users %}
+        {% for user in board %}
           {% if user.active %}
           <tr>
             <td>
@@ -46,7 +46,7 @@
       <!-- Table for Department and Guests -->
     {% else %}
       <tbody>
-      {% for user in users %}
+      {% for user in board %}
         {% if not admin and not staff %}
             <tr>
               <td>
