@@ -44,6 +44,7 @@
         <ul class="nav navbar-nav">
           {% if staff %}
             <li><a href="{{ url_for('render_schedule') }}"><span class="font-size-large">Schedule</span></a></li>
+            <li><a href="{{ url_for('render_directory') }}"><span class="font-size-large">Directory</span></a></li>
             {% if admin %}
               <li><a href="{{ url_for('render_admin') }}">Admin</a></li>
             {% endif%}
