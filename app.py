@@ -2,7 +2,7 @@ import json
 from db_config import User, Role, UserRoles, guest_role, dept_role, app, db
 from flask import Flask, request, jsonify, session, g, redirect, url_for, abort, \
      render_template, flash, json
-from ldap import initialize, SCOPE_SUBTREE
+from ldap import initialize, SCOPE_SUBTREE, LDAPError
 from urllib import urlencode, urlopen
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, UserMixin, login_required, logout_user, \
@@ -87,9 +87,13 @@ def validate():
     else:
         uid = None
     if uid:
-        ldap_obj = initialize(app.config['LDAP_SERVER'])
-        ldap_obj.simple_bind_s()
-        result = ldap_obj.search_s(app.config['LDAP_BASE'], SCOPE_SUBTREE, '(uid=%s)' % uid)
+        try:  
+            ldap_obj = initialize(app.config['LDAP_SERVER'])
+            ldap_obj.simple_bind_s()
+            result = ldap_obj.search_s(app.config['LDAP_BASE'], SCOPE_SUBTREE, '(uid=%s)'.format(uid))
+        except LDAPError, e:
+            print e
+            result = None
         if result:
             print('User logged in: %s' % result[0][1]['displayName'][0].title())
             session['UID'] = uid
@@ -150,6 +154,16 @@ def render_schedule():
     f.close()
     return render_template('schedule.html', title=app.config['BASE_HTML_TITLE'],
         schedule = schedule)
+
+
+@app.route('/directory')
+@login_required
+def render_directory():
+    f = open('instance/directory.json', 'r')
+    directory = json.load(f)
+    f.close()
+    return render_template('directory.html', title=app.config['BASE_HTML_TITLE'],
+        directory = directory)
 
 
 @app.route('/inOutToggle')
