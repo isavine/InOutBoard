@@ -3,7 +3,7 @@
 ### Clone the application from GitHub:
 ```
 $ cd path/to/work/directory
-$ git clone https://github.com/tommyhuynh/InOutBoard.git
+$ git clone https://github.com/isavine/InOutBoard.git
 $ cd InOutBoard
 ```
 ### Create virtual environment and install dependencies:
