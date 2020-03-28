@@ -87,6 +87,8 @@ def validate():
     else:
         uid = None
     if uid:
+        print('User ID: %s' % uid)
+        session['UID'] = uid
         try:  
             ldap_obj = initialize(app.config['LDAP_SERVER'])
             ldap_obj.simple_bind_s()
@@ -95,17 +97,16 @@ def validate():
             print e
             result = None
         if result:
-            print('User logged in: %s' % result[0][1]['displayName'][0].title())
-            session['UID'] = uid
             name = result[0][1]['displayName'][0].title()
-            session['name'] = name
-            print('User ID: %s' % session['UID'])
-            user = User.query.get(session['UID'])
-            if user:
-                flash('You were logged in as %s' % name, 'success')
-                login_user(user)
-                session['logged_in'] = True
-                return redirect(url_for('who'))
+            print('LDAP displayName: %s' % name)
+        user = User.query.get(uid)
+        if user:
+            name = user.name
+            print('DB user name: %s' % name)
+            flash('You were logged in as %s' % name, 'success')
+            login_user(user)
+            session['logged_in'] = True
+            return redirect(url_for('who'))
     flash('You do not have permission to access this page.', 'danger')
     return redirect(url_for('logout'))
 
@@ -209,31 +210,6 @@ def check_change():
 @login_required
 def render_admin():
     return redirect(url_for("admin.index"))
-
-
-##### Feature Deprecated #####
-# @app.route('/role_select')
-# @login_required
-# def render_role_select():
-#     return render_template('role_select.html', title=app.config['BASE_HTML_TITLE'])
-
-# @app.route('/role_select', methods=['POST'])
-# @login_required
-# def role_select():
-#     selected = request.form['selected']
-#     session['dept'] = True
-#     session['staff'] = False
-#     if (selected == 'Admin'):
-#         session['admin'] = True
-#     elif (selected == 'Staff'):
-#         session['admin'] = False
-#         session['staff'] = True
-#     elif (selected == 'Department'):
-#         session['admin'] = False
-#     else:
-#         session['dept'] = False
-#         session['admin'] = False
-#     return redirect(url_for('render_board'))
 
 
 if __name__ == '__main__':
