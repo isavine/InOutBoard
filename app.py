@@ -2,7 +2,7 @@ import json
 from db_config import User, Role, UserRoles, guest_role, dept_role, app, db
 from flask import Flask, request, jsonify, session, g, redirect, url_for, abort, \
      render_template, flash, json
-from ldap import initialize, SCOPE_SUBTREE, LDAPError
+#from ldap import initialize, SCOPE_SUBTREE, LDAPError
 from urllib import urlencode, urlopen
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, UserMixin, login_required, logout_user, \
@@ -89,16 +89,16 @@ def validate():
     if uid:
         print('User ID: %s' % uid)
         session['UID'] = uid
-        try:  
-            ldap_obj = initialize(app.config['LDAP_SERVER'])
-            ldap_obj.simple_bind_s()
-            result = ldap_obj.search_s(app.config['LDAP_BASE'], SCOPE_SUBTREE, '(uid=%s)'.format(uid))
-        except LDAPError, e:
-            print e
-            result = None
-        if result:
-            name = result[0][1]['displayName'][0].title()
-            print('LDAP displayName: %s' % name)
+        #try:  
+            #ldap_obj = initialize(app.config['LDAP_SERVER'])
+            #ldap_obj.simple_bind_s()
+            #result = ldap_obj.search_s(app.config['LDAP_BASE'], SCOPE_SUBTREE, '(uid=%s)'.format(uid))
+        #except LDAPError, e:
+            #print e
+            #result = None
+        #if result:
+            #name = result[0][1]['displayName'][0].title()
+            #print('LDAP displayName: %s' % name)
         user = User.query.get(uid)
         if user:
             name = user.name
